@@ -1,0 +1,70 @@
+<app-shared-table
+  [columns]="columns"
+  [data]="transactions"
+  [actions]="actions"
+  title="Transactions Management"
+  (createClick)="onCreate()"
+  (editClick)="onEdit($event)"
+  (deleteClick)="onDelete($event)"
+></app-shared-table>
+
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditMode ? 'Edit Transaction' : 'Create New Transaction' }}</h3>
+      <button class="close-btn" (click)="closeModal()">×</button>
+    </div>
+    <form [formGroup]="transactionForm" (ngSubmit)="saveTransaction()" class="modal-body">
+      <div class="form-group">
+        <label>Student *</label>
+        <select formControlName="user_id" class="form-input">
+          <option value="">Select Student</option>
+          <option *ngFor="let student of students" [value]="student.id">
+            {{ student.name }} ({{ student.registration_no || 'N/A' }})
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Transaction Date *</label>
+        <input type="date" formControlName="transaction_date" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label>Payment Mode *</label>
+        <select formControlName="payment_mode" class="form-input">
+          <option value="">Select Payment Mode</option>
+          <option value="Credit Card">Credit Card</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="Cash">Cash</option>
+          <option value="PayPal">PayPal</option>
+          <option value="Cheque">Cheque</option>
+          <option value="Online">Online</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Amount *</label>
+        <input type="number" formControlName="amount" class="form-input" step="0.01" />
+      </div>
+      <div class="form-group">
+        <label>Transaction Type</label>
+        <select formControlName="transtype" class="form-input">
+          <option value="">Select Type</option>
+          <option value="Fee Payment">Fee Payment</option>
+          <option value="Refund">Refund</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Reference Number</label>
+        <input type="text" formControlName="reference_number" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label>Remarks</label>
+        <textarea formControlName="remarks" class="form-input" rows="3"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeModal()">Cancel</button>
+        <button type="submit" class="btn-primary">{{ isEditMode ? 'Update' : 'Create' }}</button>
+      </div>
+    </form>
+  </div>
+</div>

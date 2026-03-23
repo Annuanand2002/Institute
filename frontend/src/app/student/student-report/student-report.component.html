@@ -1,0 +1,174 @@
+<div class="table-container">
+  <div class="table-header">
+    <div>
+      <h1>Student Report</h1>
+      <p>Total: {{ filteredStudents.length }} students &nbsp;·&nbsp; Overall due amount per student</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-download" (click)="openAnalytics()" title="View analytics">Analytics</button>
+      <button class="btn-download" (click)="downloadPDF()" title="Download PDF">PDF</button>
+      <button class="btn-download" (click)="downloadExcel()" title="Download Excel">Excel</button>
+      <button class="btn-download" (click)="downloadCSV()" title="Download CSV">CSV</button>
+    </div>
+  </div>
+
+  <div class="search-container">
+    <div class="search-box">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <input type="text" class="search-input" placeholder="Search by student name, student ID (reg no), course..."
+        [(ngModel)]="searchQuery" (ngModelChange)="onSearch()" />
+      <button *ngIf="searchQuery" class="clear-search" (click)="searchQuery = ''; onSearch()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th (click)="sort('registration_no')" class="sortable">Student ID
+            <span *ngIf="sortColumn === 'registration_no'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th (click)="sort('name')" class="sortable">Student Name
+            <span *ngIf="sortColumn === 'name'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th (click)="sort('course_name')" class="sortable">Course Name
+            <span *ngIf="sortColumn === 'course_name'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th (click)="sort('due_amount')" class="sortable">Overall due amount
+            <span *ngIf="sortColumn === 'due_amount'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="isLoading">
+          <tr *ngFor="let i of [1,2,3,4,5,6,7,8,9,10]" class="table-row skeleton-row">
+            <td colspan="5"><app-skeleton variant="table-row" [height]="'40px'"></app-skeleton></td>
+          </tr>
+        </ng-container>
+        <ng-container *ngIf="!isLoading">
+          <tr *ngFor="let student of paginatedStudents" class="table-row">
+            <td class="reg-cell">{{ student.registration_no || '-' }}</td>
+            <td class="name-cell">{{ student.name }}</td>
+            <td>{{ student.course_name || '-' }}</td>
+            <td>{{ student.due_amount ?? 0 }}</td>
+            <td class="actions-cell">
+              <button class="action-btn edit" (click)="openMonthlyDue(student)" title="View monthly due">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 10V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M12 7H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        </ng-container>
+        <tr *ngIf="!isLoading && paginatedStudents.length === 0" class="no-data">
+          <td colspan="5" class="no-data-cell">
+            <div class="no-data-content">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <p>No students found</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">Previous</button>
+    <div class="page-numbers">
+      <button *ngFor="let page of getPageNumbers()" class="page-number" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
+    </div>
+    <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">Next</button>
+  </div>
+</div>
+
+<!-- Analytics chart modal -->
+<div class="modal-backdrop" *ngIf="isAnalyticsOpen" (click)="closeAnalytics()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">
+        <h2>Student Report Analytics</h2>
+        <p class="modal-subtitle">Total due amount grouped by course (for current filter)</p>
+      </div>
+      <button class="modal-close" (click)="closeAnalytics()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <canvas
+        baseChart
+        [data]="reportChartData"
+        [options]="reportChartOptions"
+        [type]="reportChartType">
+      </canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Monthly due modal -->
+<div class="modal-backdrop" *ngIf="isDueModalOpen" (click)="closeDueModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">
+        <h2>Monthly Due Details</h2>
+        <p class="modal-subtitle">
+          {{ (dueModalData?.name || dueModalStudent?.name) || '-' }}
+          <span *ngIf="dueModalData?.registration_no || dueModalStudent?.registration_no">·</span>
+          {{ dueModalData?.registration_no || dueModalStudent?.registration_no || '' }}
+        </p>
+      </div>
+      <button class="modal-close" (click)="closeDueModal()" aria-label="Close">×</button>
+    </div>
+
+    <div class="modal-body" *ngIf="isDueModalLoading">
+      <app-skeleton variant="table-row" [height]="'40px'"></app-skeleton>
+      <app-skeleton variant="table-row" [height]="'40px'"></app-skeleton>
+      <app-skeleton variant="table-row" [height]="'40px'"></app-skeleton>
+    </div>
+
+    <div class="modal-body" *ngIf="!isDueModalLoading">
+      <div class="modal-summary" *ngIf="dueModalData">
+        <div><strong>Course:</strong> {{ dueModalData.course_name || '-' }}</div>
+        <div><strong>Monthly installment:</strong> {{ dueModalData.monthly_amount }}</div>
+      </div>
+
+      <div class="modal-note" *ngIf="dueModalData?.note">{{ dueModalData?.note }}</div>
+
+      <table class="modal-table" *ngIf="dueModalData?.months?.length">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Status</th>
+            <th>Paid</th>
+            <th>Due</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let m of (dueModalData?.months || [])">
+            <td>{{ m.month }}</td>
+            <td>
+              <span class="status-pill" [class.paid]="m.status === 'Paid'" [class.pending]="m.status === 'Pending'">
+                {{ m.status }}
+              </span>
+            </td>
+            <td>{{ m.paid_amount }}</td>
+            <td>{{ m.due_amount }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="modal-empty" *ngIf="dueModalData && (!dueModalData.months || dueModalData.months.length === 0)">
+        No months found for this student.
+      </div>
+    </div>
+  </div>
+</div>
+

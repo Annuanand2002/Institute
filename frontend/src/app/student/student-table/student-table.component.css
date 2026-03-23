@@ -1,0 +1,87 @@
+.table-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+.table-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 20px; }
+.table-header h1 { font-size: 2rem; font-weight: 600; color: #333; margin: 0 0 8px 0; }
+.table-header p { color: #666; font-size: 0.95rem; margin: 0; }
+.header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-download, .btn-add { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; border: none; }
+.btn-download { background: #f5f5f5; color: #666; border: 1px solid #e0e0e0; }
+.btn-download:hover { background: #e8e8e8; border-color: #ccc; }
+.btn-add { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+.btn-add:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+.search-container { margin-bottom: 20px; }
+.search-box { display: flex; align-items: center; background: white; border: 2px solid #e0e0e0; border-radius: 10px; padding: 12px 16px; }
+.search-box:focus-within { border-color: #667eea; }
+.search-icon { color: #999; margin-right: 12px; }
+.search-input { flex: 1; border: none; outline: none; font-size: 0.95rem; }
+.clear-search { background: none; border: none; color: #999; cursor: pointer; padding: 4px; }
+.table-wrapper { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+.data-table thead { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+.data-table th { padding: 16px; text-align: left; font-weight: 600; font-size: 0.9rem; }
+.data-table th.sortable { cursor: pointer; }
+.data-table .sort-icon { margin-left: 8px; }
+.data-table tbody .table-row { border-bottom: 1px solid #f0f0f0; }
+.data-table tbody .table-row:hover { background: #f9f9f9; }
+.data-table td { padding: 16px; font-size: 0.9rem; }
+.reg-cell { font-weight: 500; color: #555; }
+.name-cell { font-weight: 500; color: #333; }
+.status-badge { padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 500; }
+.status-badge.active { background: #e8f5e9; color: #4caf50; }
+.status-badge.inactive { background: #ffebee; color: #f44336; }
+.actions-cell .action-btn { width: 32px; height: 32px; border: none; border-radius: 6px; cursor: pointer; margin-right: 8px; }
+.actions-cell .action-btn.edit { background: #e3f2fd; color: #2196f3; }
+.actions-cell .action-btn.edit:hover { background: #2196f3; color: white; }
+.actions-cell .action-btn.delete { background: #ffebee; color: #f44336; }
+.actions-cell .action-btn.delete:hover { background: #f44336; color: white; }
+.no-data-cell { padding: 60px 20px; text-align: center; }
+.skeleton-row td { padding: 12px 16px !important; vertical-align: middle; }
+.no-data-content { display: flex; flex-direction: column; align-items: center; gap: 16px; color: #999; }
+.pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 24px; padding: 20px; }
+.page-btn { padding: 8px 16px; border: 1px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; }
+.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.page-numbers { display: flex; gap: 4px; }
+.page-number { width: 36px; height: 36px; border: 1px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; }
+.page-number.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-color: #667eea; }
+
+/* Active switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #d0d0d0;
+  transition: 0.2s;
+  border-radius: 999px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  top: 3px;
+  background-color: white;
+  transition: 0.2s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.switch input:checked + .slider {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.switch input:checked + .slider:before {
+  transform: translateX(20px);
+}
+.switch.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}

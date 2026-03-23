@@ -1,0 +1,66 @@
+<div class="sidebar" [class.collapsed]="collapsed">
+  <div class="sidebar-content">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <img *ngIf="orgLogo" [src]="orgLogo" alt="" class="sidebar-logo" />
+        <h2 class="logo" *ngIf="!collapsed">{{ orgName || 'IMS' }}</h2>
+      </div>
+      <button class="sidebar-toggle" (click)="toggleSidebar.emit()">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="search-container" *ngIf="!collapsed">
+      <div class="search-box">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search menu..."
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange()"
+        />
+      </div>
+    </div>
+
+    <nav class="nav-menu" #navMenu>
+      <div *ngFor="let module of filteredModules" class="nav-module">
+        <div class="module-header" *ngIf="!collapsed">
+          <h3 class="module-title">{{ module.name }}</h3>
+        </div>
+        <ul class="nav-list">
+          <li *ngFor="let item of module.items" class="nav-item">
+            <button
+              class="nav-link"
+              (click)="navigateTo(item.route)"
+              [title]="item.label"
+              [class.active]="isActive(item.route)"
+            >
+              <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path [attr.d]="getIconPath(item.icon)" fill="currentColor"/>
+              </svg>
+              <span class="nav-label" *ngIf="!collapsed">{{ item.label }}</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="empty-state" *ngIf="filteredModules.length === 0 && searchQuery">
+      <p>No items found</p>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="logout.emit()">
+        <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17 7L15.59 8.41L18.17 11H8V13H18.17L15.59 15.58L17 17L22 12L17 7ZM4 5H12V3H4C2.9 3 2 3.9 2 5V19C2 20.1 2.9 21 4 21H12V19H4V5Z" fill="currentColor"/>
+        </svg>
+        <span class="nav-label">Logout</span>
+      </button>
+    </div>
+  </div>
+</div>

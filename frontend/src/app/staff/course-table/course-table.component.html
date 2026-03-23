@@ -1,0 +1,101 @@
+<div class="table-container">
+  <div class="table-header">
+    <div>
+      <h1>Course Management</h1>
+      <p>Total: {{ filteredCourses.length }} course(s)</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-download" (click)="downloadPDF()" title="Download PDF">PDF</button>
+      <button class="btn-download" (click)="downloadExcel()" title="Download Excel">Excel</button>
+      <button class="btn-download" (click)="downloadCSV()" title="Download CSV">CSV</button>
+      <button class="btn-add" (click)="addNew()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Add Course
+      </button>
+    </div>
+  </div>
+
+  <div class="search-container">
+    <div class="search-box">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <input type="text" class="search-input" placeholder="Search by course code, name, batch..."
+        [(ngModel)]="searchQuery" (ngModelChange)="onSearch()" />
+      <button *ngIf="searchQuery" class="clear-search" (click)="searchQuery = ''; onSearch()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th (click)="sort('course_code')" class="sortable">Course Code
+            <span *ngIf="sortColumn === 'course_code'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th (click)="sort('course_name')" class="sortable">Course Name
+            <span *ngIf="sortColumn === 'course_name'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th (click)="sort('batch_name')" class="sortable">Batch
+            <span *ngIf="sortColumn === 'batch_name'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th>Duration</th>
+          <th>Fee</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let course of paginatedCourses" class="table-row">
+          <td class="course-code">{{ course.course_code }}</td>
+          <td>{{ course.course_name }}</td>
+          <td>{{ course.batch_name || '-' }}</td>
+          <td>{{ course.duration || '-' }}</td>
+          <td>{{ course.total_fee != null ? course.total_fee : '-' }}</td>
+          <td>
+            <span class="status-badge" [class.active]="course.is_active !== false" [class.inactive]="course.is_active === false">
+              {{ course.is_active !== false ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <button class="action-btn edit" (click)="editCourse(course)" title="Edit">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2"/>
+                <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+            <button class="action-btn delete" (click)="deleteCourse(course)" title="Delete">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="paginatedCourses.length === 0" class="no-data">
+          <td colspan="7" class="no-data-cell">
+            <div class="no-data-content">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <p>No courses found</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">Previous</button>
+    <div class="page-numbers">
+      <button *ngFor="let page of getPageNumbers()" class="page-number" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
+    </div>
+    <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">Next</button>
+  </div>
+</div>

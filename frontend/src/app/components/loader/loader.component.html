@@ -1,0 +1,30 @@
+<div class="loader-overlay" *ngIf="isLoading" [@fadeInOut]>
+  <div class="loader-container">
+    <div class="book-loader">
+      <div class="book-spine"></div>
+      <div class="book-cover book-cover-left">
+        <div class="cover-inner">
+          <span class="cover-title">Inst</span>
+        </div>
+      </div>
+      <div class="book-cover book-cover-right">
+        <div class="cover-inner">
+          <span class="cover-title">Manage</span>
+        </div>
+      </div>
+      <div class="book-pages">
+        <div class="page-content">
+          <div class="loader-text">
+            <h3>Loading...</h3>
+            <p>Please wait while we prepare everything for you</p>
+          </div>
+          <div class="loader-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

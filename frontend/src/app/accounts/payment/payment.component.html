@@ -1,0 +1,125 @@
+<div class="form-container" *ngIf="!isCreateMode && !isEditMode">
+  <app-payment-table></app-payment-table>
+</div>
+
+<div class="form-container" *ngIf="isCreateMode || isEditMode">
+  <div class="page-header">
+    <div>
+      <h1>{{ isEditMode ? 'Edit Payment' : 'Create New Payment' }}</h1>
+      <p>{{ isEditMode ? 'Update payment details' : 'Fill in the details to record a new payment' }}</p>
+    </div>
+    <button class="cancel-btn" (click)="onCancel()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Cancel
+    </button>
+  </div>
+
+  <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()" class="payment-form">
+    <div class="form-section">
+      <div class="section-header">
+        <h2>Payment Details</h2>
+        <span class="section-number">1</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="transaction_date">Date <span class="required">*</span></label>
+          <input type="date" id="transaction_date" formControlName="transaction_date"
+            [class.error]="date?.invalid && date?.touched" />
+          <div class="error-message" *ngIf="date?.invalid && date?.touched">Date is required</div>
+        </div>
+
+        <div class="form-group">
+          <label for="reference_number">Reference Number</label>
+          <input type="text" id="reference_number" formControlName="reference_number" readonly class="readonly" />
+        </div>
+
+        <div class="form-group">
+          <label for="payment_mode">Payment Mode <span class="required">*</span></label>
+          <select id="payment_mode" formControlName="payment_mode">
+            <option value="Cash">Cash</option>
+            <option value="Card">Card</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="UPI">UPI</option>
+            <option value="Cheque">Cheque</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="amount">Amount <span class="required">*</span></label>
+          <input type="number" id="amount" formControlName="amount" placeholder="Enter amount" min="0.01" step="0.01"
+            [class.error]="amount?.invalid && amount?.touched" />
+          <div class="error-message" *ngIf="amount?.invalid && amount?.touched">
+            <span *ngIf="amount?.errors?.['required']">Amount is required</span>
+            <span *ngIf="amount?.errors?.['min']">Amount must be greater than 0</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="transtype">Transaction Type</label>
+          <select id="transtype" formControlName="transtype">
+            <option value="Fee">Fee</option>
+            <option value="Admission">Admission</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <!-- Student / Staff Dropdown with Search -->
+        <div class="form-group">
+          <label for="user_id">Student / Staff <span class="required">*</span></label>
+          <div class="searchable-dropdown" (click)="$event.stopPropagation()">
+            <div class="dropdown-input-container">
+              <input type="text" id="user_id" [value]="getSelectedStudentName() || studentSearchQuery"
+                (focus)="showStudentDropdown = true" (click)="showStudentDropdown = true"
+                placeholder="Search by name or reg no..." class="dropdown-input" readonly />
+              <button type="button" class="clear-btn" *ngIf="paymentForm.get('user_id')?.value"
+                (click)="clearStudentSelection(); $event.stopPropagation()" title="Clear selection">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <button type="button" class="dropdown-arrow" (click)="showStudentDropdown = !showStudentDropdown">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <div class="dropdown-menu" *ngIf="showStudentDropdown">
+              <div class="dropdown-search">
+                <input type="text" [(ngModel)]="studentSearchQuery" [ngModelOptions]="{standalone: true}"
+                  (input)="onStudentSearch()" placeholder="Search student or staff..." class="search-input" (click)="$event.stopPropagation()" />
+              </div>
+              <div class="dropdown-list">
+                <div *ngFor="let student of filteredStudents" class="dropdown-item"
+                  (click)="selectStudent(student)" [class.selected]="paymentForm.get('user_id')?.value === student.id">
+                  <div class="item-main">{{ student.regNo }} - {{ student.name }}{{ student.role ? ' (' + student.role + ')' : '' }}</div>
+                </div>
+                <div *ngIf="filteredStudents.length === 0" class="dropdown-empty">No students or staff found</div>
+              </div>
+            </div>
+          </div>
+          <div class="error-message" *ngIf="userId?.invalid && userId?.touched">Please select a student or staff</div>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="remarks">Remarks</label>
+          <textarea id="remarks" formControlName="remarks" rows="4" placeholder="Enter any additional remarks or notes"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="onCancel()" [disabled]="isSubmitting">Cancel</button>
+      <button type="submit" class="btn-primary" [disabled]="isSubmitting || paymentForm.invalid">
+        <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update' : 'Create' }} Payment</span>
+        <span *ngIf="isSubmitting" class="loading">
+          <span class="spinner"></span>
+          {{ isEditMode ? 'Updating...' : 'Creating...' }}
+        </span>
+      </button>
+    </div>
+  </form>
+</div>

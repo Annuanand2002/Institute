@@ -1,0 +1,219 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <div class="header-row">
+      <div>
+        <h1>Dashboard</h1>
+        <p>Welcome back! Here's a complete overview of your institution.</p>
+      </div>
+      <div class="header-actions">
+        <div class="date-filter">
+          <span class="filter-label">Period:</span>
+          <div class="filter-btns">
+            <button *ngFor="let p of dateFilterPresets" type="button" class="filter-btn" [class.active]="activeDateFilter === p.key" (click)="setDateFilter(p.key)">
+              {{ p.label }}
+            </button>
+          </div>
+        </div>
+        <button type="button" class="refresh-btn" (click)="refreshData()" [disabled]="isLoading" title="Refresh data">
+          <svg class="refresh-icon" [class.spinning]="isLoading" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          {{ isLoading ? 'Refreshing...' : 'Refresh' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <ng-container *ngIf="!isLoading">
+    <div *ngFor="let stat of stats" class="stat-card" [style.border-left-color]="stat.color">
+      <div class="stat-icon" [style.background]="stat.color + '20'">
+        <span [style.color]="stat.color">{{ stat.icon }}</span>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stat.value }}</div>
+        <div class="stat-label">{{ stat.label }}</div>
+      </div>
+    </div>
+    </ng-container>
+    <ng-container *ngIf="isLoading">
+      <div *ngFor="let i of [1,2,3,4,5,6,7]" class="stat-card stat-card-skeleton">
+        <app-skeleton variant="rectangular" [width]="'56px'" [height]="'56px'" class="stat-skeleton-icon"></app-skeleton>
+        <div class="stat-skeleton-content">
+          <app-skeleton variant="text" [width]="'80px'" [height]="'28px'"></app-skeleton>
+          <app-skeleton variant="text" [width]="'120px'" [height]="'16px'"></app-skeleton>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="charts-section">
+    <h2>Analytics & Reports</h2>
+    <p class="charts-hint">Click any chart to view in full size</p>
+    <div class="charts-grid" *ngIf="!isLoading">
+      <div class="chart-card" (click)="openChartPopup('pie')" role="button" tabindex="0">
+        <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" [type]="pieChartType"></canvas>
+        <span class="chart-expand-hint">Click to expand</span>
+      </div>
+      <div class="chart-card" (click)="openChartPopup('bar')" role="button" tabindex="0">
+        <canvas baseChart [data]="barChartData" [options]="barChartOptions" [type]="barChartType"></canvas>
+        <span class="chart-expand-hint">Click to expand</span>
+      </div>
+      <div class="chart-card" (click)="openChartPopup('doughnut')" role="button" tabindex="0">
+        <canvas baseChart [data]="doughnutChartData" [options]="doughnutChartOptions" [type]="doughnutChartType"></canvas>
+        <span class="chart-expand-hint">Click to expand</span>
+      </div>
+      <div class="chart-card" (click)="openChartPopup('line')" role="button" tabindex="0">
+        <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="lineChartType"></canvas>
+        <span class="chart-expand-hint">Click to expand</span>
+      </div>
+      <div class="chart-card">
+        <canvas baseChart [data]="studentDueChartData" [options]="studentDueChartOptions" [type]="studentDueChartType"></canvas>
+      </div>
+    </div>
+    <div class="charts-grid charts-skeleton" *ngIf="isLoading">
+      <div *ngFor="let i of [1,2,3,4]" class="chart-card">
+        <app-skeleton variant="rectangular" [height]="'280px'"></app-skeleton>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart popup modal -->
+  <div class="chart-popup-overlay" *ngIf="chartPopup" (click)="closeChartPopup()" role="dialog" aria-modal="true" aria-label="Chart full size view">
+    <div class="chart-popup-content" (click)="$event.stopPropagation()">
+      <div class="chart-popup-header">
+        <h3>{{ chartPopup === 'pie' ? 'Students by Course' : chartPopup === 'bar' ? 'Payments vs Receipts (Last 6 Months)' : chartPopup === 'doughnut' ? 'Revenue Overview' : 'Student & Staff Count' }}</h3>
+        <button type="button" class="chart-popup-close" (click)="closeChartPopup()" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="chart-popup-body">
+        <div *ngIf="chartPopup === 'pie'" class="chart-popup-canvas">
+          <canvas baseChart [data]="pieChartData" [options]="pieChartOptionsPopup" [type]="pieChartType"></canvas>
+        </div>
+        <div *ngIf="chartPopup === 'bar'" class="chart-popup-canvas">
+          <canvas baseChart [data]="barChartData" [options]="barChartOptionsPopup" [type]="barChartType"></canvas>
+        </div>
+        <div *ngIf="chartPopup === 'doughnut'" class="chart-popup-canvas">
+          <canvas baseChart [data]="doughnutChartData" [options]="doughnutChartOptionsPopup" [type]="doughnutChartType"></canvas>
+        </div>
+        <div *ngIf="chartPopup === 'line'" class="chart-popup-canvas">
+          <canvas baseChart [data]="lineChartData" [options]="lineChartOptionsPopup" [type]="lineChartType"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="recent-section" *ngIf="!isLoading">
+    <h2>Recent Transactions</h2>
+    <div class="recent-table-wrapper">
+      <table class="recent-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Reference</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Student/Recipient</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of filteredRecentTransactions" class="recent-row">
+            <td>{{ formatDate(t.transaction_date) }}</td>
+            <td>{{ t.reference_number || '-' }}</td>
+            <td>
+              <span class="tx-badge" [class.in]="t.transtype === 'Fee' || t.transtype === 'Admission'" [class.out]="t.transtype === 'Expense' || t.transtype === 'Salary' || t.transtype === 'Refund'">
+                {{ t.transtype || 'Payment' }}
+              </span>
+            </td>
+            <td [class.amount-in]="t.transtype === 'Fee' || t.transtype === 'Admission'" [class.amount-out]="t.transtype === 'Expense' || t.transtype === 'Salary' || t.transtype === 'Refund'">
+              {{ formatCurrency(t.amount || 0) }}
+            </td>
+            <td>{{ t.user_name || '-' }}</td>
+          </tr>
+          <tr *ngIf="filteredRecentTransactions.length === 0">
+            <td colspan="5" class="no-data">No transactions yet</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <button class="view-all-btn" (click)="navigateTo('/dashboard/accounts/payment')">View All Transactions</button>
+  </div>
+
+  <div class="recent-section skeleton-section" *ngIf="isLoading">
+    <app-skeleton variant="text" [width]="'200px'" [height]="'24px'"></app-skeleton>
+    <div class="recent-table-wrapper">
+      <div *ngFor="let i of [1,2,3,4,5]" class="skeleton-row">
+        <app-skeleton variant="table-row"></app-skeleton>
+      </div>
+    </div>
+  </div>
+
+  <div class="staff-section" *ngIf="!isLoading">
+    <h2>Staff</h2>
+    <div class="recent-table-wrapper">
+      <table class="recent-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Course</th>
+            <th>Phone</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of staff.slice(0, 8)" class="recent-row">
+            <td>{{ s.name || '-' }}</td>
+            <td>{{ s.email || '-' }}</td>
+            <td>{{ s.course_name || '-' }}</td>
+            <td>{{ s.personal_number || s.home_number || '-' }}</td>
+          </tr>
+          <tr *ngIf="staff.length === 0">
+            <td colspan="4" class="no-data">No staff yet</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <button class="view-all-btn" (click)="navigateTo('/dashboard/staff/staff')">View All Staff</button>
+  </div>
+
+  <div class="quick-actions">
+    <h2>Quick Actions</h2>
+    <div class="actions-grid">
+      <button class="action-card" (click)="navigateTo('/dashboard/student/student')">
+        <div class="action-icon">👥</div>
+        <div class="action-label">Manage Students</div>
+      </button>
+      <button class="action-card" (click)="navigateTo('/dashboard/staff/staff')">
+        <div class="action-icon">👨‍🏫</div>
+        <div class="action-label">Manage Staff</div>
+      </button>
+      <button class="action-card" (click)="navigateTo('/dashboard/staff/course')">
+        <div class="action-icon">📚</div>
+        <div class="action-label">Manage Courses</div>
+      </button>
+      <button class="action-card" (click)="navigateTo('/dashboard/staff/batch')">
+        <div class="action-icon">📦</div>
+        <div class="action-label">Manage Batches</div>
+      </button>
+      <button class="action-card" (click)="navigateTo('/dashboard/accounts/payment')">
+        <div class="action-icon">💰</div>
+        <div class="action-label">Payments</div>
+      </button>
+      <button class="action-card" (click)="navigateTo('/dashboard/accounts/receipt')">
+        <div class="action-icon">📤</div>
+        <div class="action-label">Receipts</div>
+      </button>
+      <button class="action-card" (click)="navigateTo('/dashboard/administration/organisation')">
+        <div class="action-icon">🏢</div>
+        <div class="action-label">Organisation</div>
+      </button>
+      <button class="action-card" (click)="navigateTo('/dashboard/administration/user-management')">
+        <div class="action-icon">👤</div>
+        <div class="action-label">User Management</div>
+      </button>
+    </div>
+  </div>
+</div>

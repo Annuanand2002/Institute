@@ -1,0 +1,137 @@
+<div class="user-management-container">
+  <div class="page-header">
+    <div>
+      <h1>{{ isEditMode ? 'Edit User' : 'Create New User' }}</h1>
+      <p>{{ isEditMode ? 'Update user login credentials' : 'Fill in the details to create a new user account' }}</p>
+    </div>
+    <button class="cancel-btn" (click)="onCancel()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Cancel
+    </button>
+  </div>
+
+  <div class="form-wrapper">
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-form">
+      <!-- Staff dropdown (create and edit) -->
+      <div class="form-group">
+        <label for="staff">Select Staff <span class="required">*</span></label>
+        <select id="staff" formControlName="staff" (change)="onStaffChange()"
+          [class.error]="staff?.invalid && staff?.touched">
+          <option value="">-- Select a Staff --</option>
+          <option *ngFor="let s of staffList" [value]="s.id">
+            {{ s.name }}
+          </option>
+        </select>
+        <div class="error-message" *ngIf="staff?.invalid && staff?.touched">Please select a staff member</div>
+        <div class="helper-text" *ngIf="staffList.length === 0">No staff available. Add staff first in the Staff section.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="userId">User ID</label>
+        <input type="text" id="userId" formControlName="userId" placeholder="Auto-generated" class="disabled-input" [disabled]="true" />
+        <small class="helper-text">User ID is automatically generated</small>
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username <span class="required">*</span></label>
+        <input type="text" id="username" formControlName="username" placeholder="Enter username"
+          [class.error]="username?.invalid && username?.touched" />
+        <div class="error-message" *ngIf="username?.invalid && username?.touched">
+          <span *ngIf="username?.errors?.['required']">Username is required</span>
+          <span *ngIf="username?.errors?.['minlength']">Username must be at least 3 characters</span>
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="isCreateMode">
+        <label for="password">Password <span class="required">*</span></label>
+        <input type="password" id="password" formControlName="password" placeholder="Enter password"
+          [class.error]="password?.invalid && password?.touched" />
+        <div class="error-message" *ngIf="password?.invalid && password?.touched">
+          <span *ngIf="password?.errors?.['required']">Password is required</span>
+          <span *ngIf="password?.errors?.['minlength']">Password must be at least 6 characters</span>
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="isCreateMode">
+        <label for="confirmPassword">Confirm Password <span class="required">*</span></label>
+        <input type="password" id="confirmPassword" formControlName="confirmPassword" placeholder="Confirm password"
+          [class.error]="(confirmPassword?.invalid && confirmPassword?.touched) || userForm.errors?.['passwordMismatch']" />
+        <div class="error-message" *ngIf="confirmPassword?.invalid && confirmPassword?.touched">
+          <span *ngIf="confirmPassword?.errors?.['required']">Please confirm your password</span>
+        </div>
+        <div class="error-message" *ngIf="userForm.errors?.['passwordMismatch'] && confirmPassword?.touched">
+          Passwords do not match
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="isEditMode">
+        <label for="password">New Password</label>
+        <input type="password" id="password" formControlName="password" placeholder="Leave blank to keep current" />
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="canLogin" class="checkbox-input" />
+          <span>Can Login?</span>
+        </label>
+        <small class="helper-text">Allow this user to login to the system</small>
+      </div>
+
+      <!-- Permissions section -->
+      <div class="permissions-section">
+        <h3 class="permissions-heading">Permissions</h3>
+        <p class="permissions-desc">Choose which modules this user can access.</p>
+        <div class="permissions-grid">
+          <label class="switch-row">
+            <input type="checkbox" formControlName="is_batch" class="switch-input" />
+            <span class="switch-slider"></span>
+            <span class="switch-label">Batch</span>
+          </label>
+          <label class="switch-row">
+            <input type="checkbox" formControlName="is_course" class="switch-input" />
+            <span class="switch-slider"></span>
+            <span class="switch-label">Course</span>
+          </label>
+          <label class="switch-row">
+            <input type="checkbox" formControlName="is_staff" class="switch-input" />
+            <span class="switch-slider"></span>
+            <span class="switch-label">Staff</span>
+          </label>
+          <label class="switch-row">
+            <input type="checkbox" formControlName="is_student" class="switch-input" />
+            <span class="switch-slider"></span>
+            <span class="switch-label">Student</span>
+          </label>
+          <label class="switch-row">
+            <input type="checkbox" formControlName="is_payment" class="switch-input" />
+            <span class="switch-slider"></span>
+            <span class="switch-label">Payment</span>
+          </label>
+          <label class="switch-row">
+            <input type="checkbox" formControlName="is_receipt" class="switch-input" />
+            <span class="switch-slider"></span>
+            <span class="switch-label">Receipt</span>
+          </label>
+          <label class="switch-row">
+            <input type="checkbox" formControlName="is_proftloss" class="switch-input" />
+            <span class="switch-slider"></span>
+            <span class="switch-label">Profit &amp; Loss</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="onCancel()" [disabled]="isSubmitting">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="isSubmitting || userForm.invalid">
+          <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update' : 'Create' }} User</span>
+          <span *ngIf="isSubmitting" class="loading">
+            <span class="spinner"></span>
+            {{ isEditMode ? 'Updating...' : 'Creating...' }}
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

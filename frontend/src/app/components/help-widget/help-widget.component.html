@@ -1,0 +1,78 @@
+<div class="help-widget">
+  <!-- Backdrop overlay when panel open -->
+  <div
+    class="help-backdrop"
+    [class.visible]="isOpen"
+    (click)="close()"
+    role="presentation"
+    aria-hidden="true"
+  ></div>
+
+  <!-- Floating ? button -->
+  <button
+    type="button"
+    class="help-fab"
+    [class.open]="isOpen"
+    (click)="toggle()"
+    aria-label="Help"
+    title="Help"
+  >
+    <span class="help-fab-icon">?</span>
+  </button>
+
+  <!-- Slide-in panel -->
+  <div class="help-panel" [class.visible]="isOpen">
+    <div class="help-panel-header">
+      <h3>App Guide</h3>
+      <button type="button" class="help-close" (click)="close()" aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="help-panel-body">
+      <!-- Intro step -->
+      <div *ngIf="step === 'intro'" class="help-step">
+        <div class="help-message bot">
+          <p>Are you interested in knowing about the app?</p>
+        </div>
+        <div class="help-actions">
+          <button type="button" class="help-btn help-btn-yes" (click)="onYes()">Yes</button>
+          <button type="button" class="help-btn help-btn-no" (click)="onNo()">No</button>
+        </div>
+      </div>
+
+      <!-- Module selection step -->
+      <div *ngIf="step === 'modules'" class="help-step">
+        <div class="help-message bot">
+          <p>About which module would you like to know?</p>
+        </div>
+        <div class="help-modules">
+          <button
+            *ngFor="let m of modules"
+            type="button"
+            class="help-module-btn"
+            (click)="selectModule(m)"
+          >
+            {{ m.name }}
+          </button>
+        </div>
+        <button type="button" class="help-back" (click)="backToIntro()">← Back</button>
+      </div>
+
+      <!-- Summary step -->
+      <div *ngIf="step === 'summary' && selectedModule" class="help-step">
+        <div class="help-message bot">
+          <p class="help-module-title">{{ selectedModule.name }}</p>
+          <p class="help-summary">{{ selectedModule.summary }}</p>
+        </div>
+        <div class="help-actions">
+          <button type="button" class="help-btn help-btn-secondary" (click)="backToModules()">
+            ← Choose another module
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

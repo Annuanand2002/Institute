@@ -1,0 +1,13 @@
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-skeleton',
+  templateUrl: './skeleton.component.html',
+  styleUrls: ['./skeleton.component.css']
+})
+export class SkeletonComponent {
+  @Input() variant: 'text' | 'circular' | 'rectangular' | 'card' | 'table-row' | 'stat' = 'text';
+  @Input() width?: string;
+  @Input() height?: string;
+  @Input() animation: 'pulse' | 'wave' | 'none' = 'pulse';
+}

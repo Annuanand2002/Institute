@@ -1,0 +1,149 @@
+<div class="student-container">
+  <div class="page-header">
+    <div>
+      <h1>{{ isEditMode ? 'Edit Student' : 'Create New Student' }}</h1>
+      <p>{{ isEditMode ? 'Update student details' : 'Fill in the details to create a new student' }}</p>
+    </div>
+    <button class="cancel-btn" (click)="onCancel()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Cancel
+    </button>
+  </div>
+
+  <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" class="student-form">
+    <div class="form-section">
+      <div class="section-header">
+        <h2>Basic Information</h2>
+        <span class="section-number">1</span>
+      </div>
+      <div class="profile-image-area">
+        <div class="profile-image-wrap">
+          <img *ngIf="profileImageDataUrl" [src]="profileImageDataUrl" alt="Profile" class="profile-image" />
+          <div *ngIf="!profileImageDataUrl" class="profile-placeholder">
+            <span class="placeholder-icon">{{ (studentForm.get('name')?.value || 'S')[0] | uppercase }}</span>
+          </div>
+        </div>
+        <label class="change-photo-btn">
+          <input type="file" accept="image/*" (change)="onProfileImageChange($event)" class="file-input" />
+          {{ profileImageDataUrl ? 'Change photo' : 'Upload photo' }}
+        </label>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="registration_no">Registration No</label>
+          <input type="text" id="registration_no" formControlName="registration_no" placeholder="e.g., REG001" />
+        </div>
+        <div class="form-group">
+          <label for="name">Name <span class="required">*</span></label>
+          <input type="text" id="name" formControlName="name" placeholder="Full name"
+            [class.error]="name?.invalid && name?.touched" />
+          <div class="error-message" *ngIf="name?.invalid && name?.touched">
+            <span *ngIf="name?.errors?.['required']">Name is required</span>
+            <span *ngIf="name?.errors?.['minlength']">Name must be at least 2 characters</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" formControlName="email" placeholder="email@example.com"
+            [class.error]="studentForm.get('email')?.invalid && studentForm.get('email')?.touched" />
+          <div class="error-message" *ngIf="studentForm.get('email')?.invalid && studentForm.get('email')?.touched">Enter a valid email</div>
+        </div>
+        <div class="form-group">
+          <label for="personal_number">Phone</label>
+          <input type="text" id="personal_number" formControlName="personal_number" placeholder="Phone number" />
+        </div>
+        <div class="form-group">
+          <label for="course_id">Course</label>
+          <select id="course_id" formControlName="course_id">
+            <option [ngValue]="null">-- Select Course (optional) --</option>
+            <option *ngFor="let course of courses" [ngValue]="course.id">{{ course.course_name }} ({{ course.course_code || course.id }})</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="date_of_birth">Date of Birth</label>
+          <input type="date" id="date_of_birth" formControlName="date_of_birth" />
+        </div>
+        <div class="form-group">
+          <label for="gender">Gender</label>
+          <select id="gender" formControlName="gender">
+            <option value="">-- Select --</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="is_active">Status</label>
+          <select id="is_active" formControlName="is_active">
+            <option [ngValue]="true">Active</option>
+            <option [ngValue]="false">Inactive</option>
+          </select>
+        </div>
+        <div class="form-group full-width" style="grid-column: 1 / -1;">
+          <label for="permanent_address">Permanent Address</label>
+          <textarea id="permanent_address" formControlName="permanent_address" placeholder="Permanent address" rows="3"></textarea>
+        </div>
+        <div class="form-group full-width" style="grid-column: 1 / -1;">
+          <label for="local_address">Local Address</label>
+          <textarea id="local_address" formControlName="local_address" placeholder="Local address" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-header">
+        <h2>Guardian Information</h2>
+        <span class="section-number">2</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="guardian_name">Guardian Name</label>
+          <input type="text" id="guardian_name" formControlName="guardian_name" placeholder="Guardian's full name" />
+        </div>
+        <div class="form-group">
+          <label for="relationship_with_guardian">Relationship with Guardian</label>
+          <input type="text" id="relationship_with_guardian" formControlName="relationship_with_guardian" placeholder="e.g., Father, Mother" />
+        </div>
+        <div class="form-group">
+          <label for="occupation_of_guardian">Occupation of Guardian</label>
+          <input type="text" id="occupation_of_guardian" formControlName="occupation_of_guardian" placeholder="Guardian's occupation" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-header">
+        <h2>Payment Information</h2>
+        <span class="section-number">3</span>
+      </div>
+      <div class="form-grid payment-fields">
+        <div class="form-group">
+          <label for="payment_mode">Payment Type</label>
+          <select id="payment_mode" formControlName="payment_mode">
+            <option value="">-- Select --</option>
+            <option value="monthly">Monthly</option>
+            <option value="one-time">One-time</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="adjustment_amount">Adjustment Amount</label>
+          <input type="number" id="adjustment_amount" formControlName="adjustment_amount" placeholder="e.g., 500"
+            step="0.01" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="onCancel()" [disabled]="isSubmitting">Cancel</button>
+      <button type="submit" class="btn-primary" [disabled]="isSubmitting || studentForm.invalid">
+        <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update' : 'Create' }} Student</span>
+        <span *ngIf="isSubmitting" class="loading">
+          <span class="spinner"></span>
+          {{ isEditMode ? 'Updating...' : 'Creating...' }}
+        </span>
+      </button>
+    </div>
+  </form>
+</div>

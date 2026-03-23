@@ -1,0 +1,112 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1>{{ title }}</h1>
+      <p class="page-subtitle">Payment and Receipt details with profit or loss</p>
+    </div>
+    <div class="header-right">
+      <div class="date-filter">
+        <span class="filter-label">Period:</span>
+        <div class="filter-btns">
+          <button *ngFor="let p of dateFilterPresets" type="button" class="filter-btn" [class.active]="activeDateFilter === p.key" (click)="setDateFilter(p.key)">
+            {{ p.label }}
+          </button>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-analytics" (click)="openAnalyticsPopup()" title="View Analytics">Analytics</button>
+        <button class="btn-download" (click)="downloadPDF()" title="Download PDF">PDF</button>
+        <button class="btn-download" (click)="downloadExcel()" title="Download Excel">Excel</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Loading...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <!-- Summary cards -->
+    <div class="summary-cards">
+      <div class="summary-card payments-card">
+        <span class="summary-label">Amount (Payments In)</span>
+        <span class="summary-value">{{ formatCurrency(totalAmount) }}</span>
+      </div>
+      <div class="summary-card receipts-card">
+        <span class="summary-label">Expenses (Out)</span>
+        <span class="summary-value">{{ formatCurrency(totalExpenses) }}</span>
+      </div>
+      <div class="summary-card profit-loss-card" [class.profit]="isProfit" [class.loss]="!isProfit">
+        <span class="summary-label">{{ isProfit ? 'Profit' : 'Loss' }}</span>
+        <span class="summary-value">{{ formatCurrency(isProfit ? profitLoss : -profitLoss) }}</span>
+      </div>
+    </div>
+
+    <!-- Details table -->
+    <div class="details-section">
+      <h2 class="section-title">Transaction Details (Payments & Receipts)</h2>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Reference</th>
+              <th>Type</th>
+              <th>Transaction Type</th>
+              <th>Student / Recipient ID</th>
+              <th>Student / Recipient</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of combinedRows" class="table-row" [class.row-payment]="row.type === 'payment'" [class.row-receipt]="row.type === 'receipt'">
+              <td>{{ formatDate(row.transaction_date) }}</td>
+              <td>{{ row.reference_number || '-' }}</td>
+              <td>
+                <span class="type-badge" [class.badge-payment]="row.type === 'payment'" [class.badge-receipt]="row.type === 'receipt'">
+                  {{ row.type === 'payment' ? 'Payment' : 'Receipt' }}
+                </span>
+              </td>
+              <td>{{ row.transtype || '-' }}</td>
+              <td>{{ row.studentOrRecipientId }}</td>
+              <td>{{ row.studentOrRecipient }}</td>
+              <td [class.amount-in]="row.type === 'payment'" [class.amount-out]="row.type === 'receipt'">
+                {{ row.type === 'payment' ? '+' : '-' }}{{ formatCurrency(row.amount) }}
+              </td>
+            </tr>
+            <tr *ngIf="combinedRows.length === 0" class="no-data-row">
+              <td colspan="7" class="no-data-cell">No transactions found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Analytics popup -->
+  <div class="analytics-popup-overlay" *ngIf="showAnalyticsPopup" (click)="closeAnalyticsPopup()" role="dialog" aria-modal="true" aria-label="Profit & Loss Analytics">
+    <div class="analytics-popup-content" (click)="$event.stopPropagation()">
+      <div class="analytics-popup-header">
+        <h3>Profit & Loss Analytics</h3>
+        <button type="button" class="analytics-popup-close" (click)="closeAnalyticsPopup()" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="analytics-popup-body">
+        <div class="analytics-charts-grid">
+          <div class="analytics-chart-card">
+            <canvas baseChart [data]="barChartData" [options]="barChartOptions" [type]="barChartType"></canvas>
+          </div>
+          <div class="analytics-chart-card">
+            <canvas baseChart [data]="doughnutChartData" [options]="doughnutChartOptions" [type]="doughnutChartType"></canvas>
+          </div>
+          <div class="analytics-chart-card analytics-chart-full">
+            <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="lineChartType"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

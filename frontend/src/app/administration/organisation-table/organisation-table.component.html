@@ -1,0 +1,98 @@
+<div class="table-container">
+  <div class="table-header">
+    <div>
+      <h1>Organisations</h1>
+      <p>Total: {{ filteredOrganisations.length }} organisation(s)</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-download" (click)="downloadPDF()" title="Download PDF">PDF</button>
+      <button class="btn-download" (click)="downloadExcel()" title="Download Excel">Excel</button>
+      <button class="btn-download" (click)="downloadCSV()" title="Download CSV">CSV</button>
+      <button class="btn-add" *ngIf="canAddOrganisation" (click)="addNew()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Add Organisation
+      </button>
+    </div>
+  </div>
+
+  <div class="search-container">
+    <div class="search-box">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <input type="text" class="search-input" placeholder="Search by name, email, location, phone..."
+        [(ngModel)]="searchQuery" (ngModelChange)="onSearch()" />
+      <button *ngIf="searchQuery" class="clear-search" (click)="searchQuery = ''; onSearch()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th (click)="sort('org_code')" class="sortable">Org Code
+            <span *ngIf="sortColumn === 'org_code'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th (click)="sort('org_name')" class="sortable">Organisation Name
+            <span *ngIf="sortColumn === 'org_name'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th>Address</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th (click)="sort('created_date')" class="sortable">Created
+            <span *ngIf="sortColumn === 'created_date'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let org of paginatedOrganisations" class="table-row">
+          <td>{{ org.org_code }}</td>
+          <td class="name-cell">
+            <div class="name-wrapper">
+              <div class="avatar">{{ (org.org_name || 'O').charAt(0).toUpperCase() }}</div>
+              <span>{{ org.org_name }}</span>
+            </div>
+          </td>
+          <td>{{ org.address }}</td>
+          <td>{{ org.phone_number }}</td>
+          <td>{{ org.email }}</td>
+          <td>{{ org.created_date | date:'short' }}</td>
+          <td class="actions-cell">
+            <button class="action-btn edit" (click)="editOrganisation(org)" title="Edit">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="paginatedOrganisations.length === 0" class="no-data">
+          <td colspan="7" class="no-data-cell">
+            <div class="no-data-content">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <p>{{ canAddOrganisation ? 'No organisation set up. Click Add Organisation above.' : 'No organisations found' }}</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">Previous</button>
+    <div class="page-numbers">
+      <button *ngFor="let page of getPageNumbers()" class="page-number" [class.active]="page === currentPage"
+        (click)="goToPage(page)">{{ page }}</button>
+    </div>
+    <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">Next</button>
+  </div>
+</div>

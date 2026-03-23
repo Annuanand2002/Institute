@@ -1,0 +1,17 @@
+<div class="main-layout">
+  <div class="sidebar-wrapper">
+  <app-sidebar
+    [collapsed]="!isSidebarOpen"
+    [orgName]="orgName"
+    [orgLogo]="orgLogo"
+    [user]="currentUser"
+    (toggleSidebar)="toggleSidebar()"
+    (logout)="logout()"
+  ></app-sidebar>
+  </div>
+
+  <main class="main-content" [class.sidebar-collapsed]="!isSidebarOpen">
+    <router-outlet></router-outlet>
+  </main>
+  <app-help-widget></app-help-widget>
+</div>

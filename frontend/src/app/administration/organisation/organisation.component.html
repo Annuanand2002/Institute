@@ -1,0 +1,231 @@
+<div class="organisation-container">
+  <div class="page-header">
+    <div>
+      <h1>{{ isEditMode ? 'Edit Organisation' : 'Create New Organisation' }}</h1>
+      <p>{{ isEditMode ? 'Update organisation details' : 'Fill in the details to create a new organisation' }}</p>
+    </div>
+    <button class="cancel-btn" (click)="onCancel()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Cancel
+    </button>
+  </div>
+
+  <form [formGroup]="organisationForm" (ngSubmit)="onSubmit()" class="organisation-form">
+    <!-- Basic Information -->
+    <div class="form-section">
+      <div class="section-header">
+        <h2>Basic Information</h2>
+        <span class="section-number">1</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="org_code">Organisation Code</label>
+          <input type="text" id="org_code" formControlName="org_code" placeholder="e.g. ORG001 (optional, auto-generated if empty)" />
+        </div>
+        <div class="form-group">
+          <label for="org_name">Organisation Name <span class="required">*</span></label>
+          <input type="text" id="org_name" formControlName="org_name" placeholder="Enter organisation name"
+            [class.error]="org_name?.invalid && org_name?.touched" />
+          <div class="error-message" *ngIf="org_name?.invalid && org_name?.touched">
+            <span *ngIf="org_name?.errors?.['required']">Organisation name is required</span>
+            <span *ngIf="org_name?.errors?.['minlength']">Name must be at least 3 characters</span>
+          </div>
+        </div>
+        <div class="form-group full-width" style="grid-column: 1 / -1;">
+          <label for="address">Address <span class="required">*</span></label>
+          <textarea id="address" formControlName="address" placeholder="Enter complete address" rows="3"
+            [class.error]="address?.invalid && address?.touched"></textarea>
+          <div class="error-message" *ngIf="address?.invalid && address?.touched">Address is required</div>
+        </div>
+        <div class="form-group">
+          <label for="phone_number">Phone Number <span class="required">*</span></label>
+          <input type="text" id="phone_number" formControlName="phone_number" placeholder="Enter 10-digit phone number"
+            [class.error]="phone_number?.invalid && phone_number?.touched" />
+          <div class="error-message" *ngIf="phone_number?.invalid && phone_number?.touched">
+            <span *ngIf="phone_number?.errors?.['required']">Phone number is required</span>
+            <span *ngIf="phone_number?.errors?.['pattern']">Enter a valid 10-digit phone number</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="email">Email <span class="required">*</span></label>
+          <input type="email" id="email" formControlName="email" placeholder="Enter email address"
+            [class.error]="email?.invalid && email?.touched" />
+          <div class="error-message" *ngIf="email?.invalid && email?.touched">
+            <span *ngIf="email?.errors?.['required']">Email is required</span>
+            <span *ngIf="email?.errors?.['email']">Enter a valid email address</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="website">Website</label>
+          <input type="url" id="website" formControlName="website" placeholder="https://www.example.com"
+            [class.error]="website?.invalid && website?.touched" />
+          <div class="error-message" *ngIf="website?.invalid && website?.touched">Enter a valid website URL</div>
+        </div>
+        <div class="form-group">
+          <label for="location">Location <span class="required">*</span></label>
+          <input type="text" id="location" formControlName="location" placeholder="Enter location (city, state, country)"
+            [class.error]="location?.invalid && location?.touched" />
+          <div class="error-message" *ngIf="location?.invalid && location?.touched">Location is required</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Geolocation -->
+    <div class="form-section">
+      <div class="section-header">
+        <h2>Geolocation</h2>
+        <span class="section-number">2</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Get Current Location</label>
+          <div class="geolocation-container">
+            <button type="button" class="btn-geolocation" (click)="getCurrentLocation()" [disabled]="isGettingLocation">
+              <svg *ngIf="!isGettingLocation" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="currentColor"/>
+              </svg>
+              <span *ngIf="isGettingLocation" class="spinner-small"></span>
+              <span>{{ isGettingLocation ? 'Getting Location...' : 'Get Current Location' }}</span>
+            </button>
+            <div *ngIf="latitude && longitude" class="location-info">
+              <div class="location-coords">
+                <span><strong>Latitude:</strong> {{ latitude | number:'1.6-6' }}</span>
+                <span><strong>Longitude:</strong> {{ longitude | number:'1.6-6' }}</span>
+              </div>
+              <button type="button" class="btn-view-map" (click)="openInMaps()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 5.03 7.03 1 12 1C16.97 1 21 5.03 21 10Z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                View on Map
+              </button>
+            </div>
+            <div *ngIf="locationError" class="location-error">{{ locationError }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Branding & Images -->
+    <div class="form-section">
+      <div class="section-header">
+        <h2>Branding & Images</h2>
+        <span class="section-number">3</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Organisation Logo</label>
+          <div class="image-upload-container">
+            <div class="image-preview" *ngIf="logoPreview">
+              <img [src]="logoPreview" alt="Logo Preview" />
+              <button type="button" class="remove-image" (click)="removeImage('logo')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <input type="file" id="logo" (change)="onFileSelected($event, 'logo')" accept="image/*" class="file-input" />
+            <label for="logo" class="upload-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              Upload Logo
+            </label>
+            <p class="upload-hint">Max 5MB, JPG, PNG, GIF, WEBP</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Header Image</label>
+          <div class="image-upload-container">
+            <div class="image-preview" *ngIf="headerPreview">
+              <img [src]="headerPreview" alt="Header Preview" />
+              <button type="button" class="remove-image" (click)="removeImage('header')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <input type="file" id="header" (change)="onFileSelected($event, 'header')" accept="image/*" class="file-input" />
+            <label for="header" class="upload-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              Upload Header
+            </label>
+            <p class="upload-hint">Max 5MB, JPG, PNG, GIF, WEBP</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Footer Image</label>
+          <div class="image-upload-container">
+            <div class="image-preview" *ngIf="footerPreview">
+              <img [src]="footerPreview" alt="Footer Preview" />
+              <button type="button" class="remove-image" (click)="removeImage('footer')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <input type="file" id="footer" (change)="onFileSelected($event, 'footer')" accept="image/*" class="file-input" />
+            <label for="footer" class="upload-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              Upload Footer
+            </label>
+            <p class="upload-hint">Max 5MB, JPG, PNG, GIF, WEBP</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Organisation Seal</label>
+          <div class="image-upload-container">
+            <div class="image-preview" *ngIf="sealPreview">
+              <img [src]="sealPreview" alt="Seal Preview" />
+              <button type="button" class="remove-image" (click)="removeImage('seal')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <input type="file" id="seal" (change)="onFileSelected($event, 'seal')" accept="image/*" class="file-input" />
+            <label for="seal" class="upload-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              Upload Seal
+            </label>
+            <p class="upload-hint">Max 5MB, JPG, PNG, GIF, WEBP</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Information -->
+    <div class="form-section">
+      <div class="section-header">
+        <h2>Additional Information</h2>
+        <span class="section-number">4</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label for="description">Remarks</label>
+          <textarea id="description" formControlName="description" placeholder="Any additional remarks or notes" rows="4"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="onCancel()" [disabled]="isSubmitting">Cancel</button>
+      <button type="submit" class="btn-primary" [disabled]="isSubmitting || organisationForm.invalid">
+        <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update' : 'Create' }} Organisation</span>
+        <span *ngIf="isSubmitting" class="loading">
+          <span class="spinner"></span>
+          {{ isEditMode ? 'Updating...' : 'Creating...' }}
+        </span>
+      </button>
+    </div>
+  </form>
+</div>
