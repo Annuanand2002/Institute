@@ -1,0 +1,301 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* Light theme (default) */
+body.theme-light {
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-sidebar: #1f2937;
+  --bg-input: #ffffff;
+  --bg-hover: #f3f4f6;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --border-color: #e5e7eb;
+  --border-light: #f3f4f6;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --table-header-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --table-row-hover: #f9fafb;
+  --table-border: #f0f0f0;
+}
+
+/* Dark theme */
+body.theme-dark {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-card: #1f2937;
+  --bg-sidebar: #111827;
+  --bg-input: #374151;
+  --bg-hover: #374151;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --border-color: #374151;
+  --border-light: #4b5563;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --table-header-bg: linear-gradient(135deg, #4f46e5 0%, #6d28d9 100%);
+  --table-row-hover: #374151;
+  --table-border: #374151;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--text-primary, #333);
+  background-color: var(--bg-primary, #f5f7fa);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Global dark mode support for tables */
+body.theme-dark .table-container,
+body.theme-dark .table-wrapper,
+body.theme-dark .data-table,
+body.theme-dark .search-box,
+body.theme-dark .form-wrapper,
+body.theme-dark .form-card,
+body.theme-dark .page-content,
+body.theme-dark .card {
+  background: var(--bg-card) !important;
+  transition: background-color 0.3s ease;
+}
+
+body.theme-dark .table-header h1,
+body.theme-dark .page-header h1,
+body.theme-dark h1, body.theme-dark h2, body.theme-dark h3 {
+  color: var(--text-primary) !important;
+}
+
+body.theme-dark .table-header p,
+body.theme-dark .page-header p,
+body.theme-dark p {
+  color: var(--text-secondary) !important;
+}
+
+body.theme-dark .data-table tbody .table-row,
+body.theme-dark .data-table tbody tr {
+  border-bottom-color: var(--border-color) !important;
+}
+
+body.theme-dark .data-table tbody .table-row:hover,
+body.theme-dark .data-table tbody tr:hover {
+  background: var(--bg-hover) !important;
+}
+
+body.theme-dark .data-table td,
+body.theme-dark .data-table .name-cell,
+body.theme-dark .data-table .reg-cell {
+  color: var(--text-primary) !important;
+}
+
+body.theme-dark .search-box {
+  border-color: var(--border-color) !important;
+}
+
+body.theme-dark .search-input {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+body.theme-dark .search-input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+body.theme-dark .btn-download,
+body.theme-dark .page-btn,
+body.theme-dark .page-number {
+  background: var(--bg-hover) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+body.theme-dark .page-number.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+}
+
+body.theme-dark .no-data-content,
+body.theme-dark .no-data-cell {
+  color: var(--text-muted) !important;
+}
+
+/* Global dark mode for forms */
+body.theme-dark .form-group label {
+  color: var(--text-primary) !important;
+}
+
+body.theme-dark .form-group input,
+body.theme-dark .form-group select,
+body.theme-dark .form-group textarea {
+  background: var(--bg-input) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.theme-dark .form-group input::placeholder,
+body.theme-dark .form-group textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+body.theme-dark .form-group input:disabled,
+body.theme-dark .disabled-input {
+  background: var(--bg-hover) !important;
+  color: var(--text-secondary) !important;
+}
+
+body.theme-dark .cancel-btn,
+body.theme-dark .btn-secondary {
+  background: var(--bg-hover) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+body.theme-dark .helper-text {
+  color: var(--text-muted) !important;
+}
+
+/* Dark mode: create/edit form pages – containers and sections */
+body.theme-dark .form-section,
+body.theme-dark .form-wrapper,
+body.theme-dark .student-container,
+body.theme-dark .staff-container,
+body.theme-dark .form-container,
+body.theme-dark .course-container,
+body.theme-dark .batch-container,
+body.theme-dark .user-management-container,
+body.theme-dark .organisation-container {
+  background: var(--bg-card) !important;
+}
+
+body.theme-dark .page-header {
+  border-bottom-color: var(--border-color) !important;
+}
+
+body.theme-dark .section-header {
+  border-bottom-color: var(--border-color) !important;
+}
+
+body.theme-dark .section-header h2 {
+  color: var(--text-primary) !important;
+}
+
+body.theme-dark .form-actions {
+  border-top-color: var(--border-color) !important;
+}
+
+body.theme-dark .form-group input.readonly,
+body.theme-dark .form-group input[readonly] {
+  background: var(--bg-hover) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Dark mode: searchable dropdown (payment/receipt forms) */
+body.theme-dark .dropdown-menu {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+body.theme-dark .dropdown-search {
+  background: var(--bg-hover) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+body.theme-dark .dropdown-input,
+body.theme-dark .searchable-dropdown .search-input {
+  background: var(--bg-input) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.theme-dark .dropdown-item {
+  border-bottom-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.theme-dark .dropdown-item:hover {
+  background: var(--bg-hover) !important;
+}
+
+body.theme-dark .dropdown-empty,
+body.theme-dark .clear-btn,
+body.theme-dark .dropdown-arrow {
+  color: var(--text-muted) !important;
+}
+
+body.theme-dark .clear-btn:hover,
+body.theme-dark .dropdown-arrow:hover {
+  color: var(--text-primary) !important;
+}
+
+/* Dark mode: organisation form extras */
+body.theme-dark .location-info {
+  background: var(--bg-hover) !important;
+  border-color: var(--border-color) !important;
+}
+
+body.theme-dark .location-coords {
+  color: var(--text-secondary) !important;
+}
+
+body.theme-dark .image-preview {
+  background: var(--bg-hover) !important;
+  border-color: var(--border-color) !important;
+}
+
+body.theme-dark .upload-btn {
+  background: var(--bg-hover) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+body.theme-dark .upload-btn:hover {
+  background: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.theme-dark .upload-hint {
+  color: var(--text-muted) !important;
+}
+
+body.theme-dark .btn-view-map {
+  background: var(--bg-hover) !important;
+  border-color: #667eea !important;
+  color: #667eea !important;
+}
+
+body.theme-dark .btn-view-map:hover {
+  background: #667eea !important;
+  color: white !important;
+}
+
+/* Toast notifications dark mode */
+body.theme-dark .toast-container .toast {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Scrollbar dark mode */
+body.theme-dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+body.theme-dark ::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+body.theme-dark ::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+body.theme-dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
