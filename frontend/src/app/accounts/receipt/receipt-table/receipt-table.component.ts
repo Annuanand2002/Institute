@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -23,6 +23,8 @@ export class ReceiptTableComponent implements OnInit {
   itemsPerPage = 10;
   sortColumn: string | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
+  openReceiptDownloadKey: string | null = null;
+  receiptDownloadDirection: Record<string, 'up' | 'down'> = {};
 
   constructor(
     private router: Router,
@@ -31,6 +33,11 @@ export class ReceiptTableComponent implements OnInit {
     private loadingService: LoadingService,
     private pdfHeaderFooter: PdfHeaderFooterService
   ) {}
+
+  @HostListener('document:click')
+  closeReceiptDownloadMenu(): void {
+    this.openReceiptDownloadKey = null;
+  }
 
   ngOnInit(): void {
     this.loadData();
@@ -122,6 +129,154 @@ export class ReceiptTableComponent implements OnInit {
   /** PDF-safe format (no Unicode ₹) so jsPDF renders correctly */
   formatCurrencyForPDF(value: number): string {
     return 'Rs. ' + new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+  }
+
+  getReceiptRowKey(receipt: Transaction): string {
+    // Used to keep a single dropdown open.
+    return String(receipt.id ?? receipt.reference_number ?? receipt.transaction_date ?? 'receipt');
+  }
+
+  toggleReceiptDownloadMenu(receipt: Transaction, event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const key = this.getReceiptRowKey(receipt);
+    const trigger = event.currentTarget as HTMLElement | null;
+    if (trigger) {
+      this.receiptDownloadDirection[key] = this.getDropdownDirection(trigger);
+    }
+    this.openReceiptDownloadKey = this.openReceiptDownloadKey === key ? null : key;
+  }
+
+  getReceiptDownloadDirection(receipt: Transaction): 'up' | 'down' {
+    const key = this.getReceiptRowKey(receipt);
+    return this.receiptDownloadDirection[key] || 'down';
+  }
+
+  private getDropdownDirection(triggerElement: HTMLElement): 'up' | 'down' {
+    const rect = triggerElement.getBoundingClientRect();
+    const estimatedMenuHeight = 150;
+    const gap = 12;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    if (spaceBelow >= estimatedMenuHeight + gap) return 'down';
+    if (spaceAbove >= estimatedMenuHeight + gap) return 'up';
+    return spaceBelow >= spaceAbove ? 'down' : 'up';
+  }
+
+  downloadReceiptRow(receipt: Transaction, format: 'pdf' | 'excel' | 'csv'): void {
+    this.openReceiptDownloadKey = null;
+    if (format === 'pdf') {
+      this.downloadReceiptRowPDF(receipt);
+      return;
+    }
+    if (format === 'excel') {
+      this.downloadReceiptRowExcel(receipt);
+      return;
+    }
+    this.downloadReceiptRowCSV(receipt);
+  }
+
+  private sanitizeFilePart(value: unknown): string {
+    return String(value ?? '')
+      .trim()
+      .replace(/[\\/:*?"<>|]/g, '_')
+      .replace(/\s+/g, '_')
+      .slice(0, 60);
+  }
+
+  private truncateForPDF(value: unknown, maxLen: number): string {
+    const s = String(value ?? '');
+    if (s.length <= maxLen) return s;
+    return s.slice(0, Math.max(0, maxLen - 1)) + '…';
+  }
+
+  private downloadReceiptRowPDF(receipt: Transaction): void {
+    this.pdfHeaderFooter.getHeaderFooter().subscribe(({ header, footer }) => {
+      const doc = new jsPDF();
+      let y = this.pdfHeaderFooter.addHeader(doc, header);
+
+      doc.setFontSize(14);
+      doc.text('Receipt Voucher', 14, y);
+      y += 8;
+
+      doc.setFontSize(10);
+      doc.text(`Date: ${String(receipt.transaction_date ?? '').substring(0, 10) || '-'}`, 18, y + 10);
+      doc.text(`Reference: ${this.truncateForPDF(receipt.reference_number, 25) || '-'}`, 18, y + 16);
+      doc.text(`Type: ${this.truncateForPDF(receipt.transtype, 18) || '-'}`, 18, y + 22);
+      doc.text(`Recipient: ${this.truncateForPDF(receipt.user_name, 30) || '-'}`, 18, y + 28);
+      doc.text(`Reg No: ${this.truncateForPDF(receipt.registration_no, 18) || '-'}`, 18, y + 34);
+
+      const amountStr = this.formatCurrencyForPDF(receipt.amount || 0);
+      doc.setFontSize(12);
+      doc.text(amountStr, 196, y + 19, { align: 'right' } as any);
+
+      // Remarks section
+      const remarksLines = doc.splitTextToSize(this.truncateForPDF(receipt.remarks || '-', 160), 172) as string[];
+      y = y + 60;
+      doc.setFontSize(10);
+      doc.text('Remarks:', 14, y);
+      remarksLines.slice(0, 3).forEach((line, i) => doc.text(line, 14, y + 5 + i * 5));
+
+      // Payment mode below card (small extra context)
+      const mode = this.truncateForPDF(receipt.payment_mode, 18) || '-';
+      doc.text(`Mode: ${mode}`, 14, y + 18 + 3 * 5);
+
+      this.pdfHeaderFooter.addFooter(doc, footer);
+      const refPart = this.sanitizeFilePart(receipt.reference_number ?? receipt.id ?? 'receipt');
+      doc.save(`Receipt_${refPart}.pdf`);
+      this.toastService.success('Receipt PDF downloaded');
+    });
+  }
+
+  private downloadReceiptRowExcel(receipt: Transaction): void {
+    const headers = ['Date', 'Reference', 'Payment Mode', 'Amount', 'Type', 'Recipient ID', 'Recipient', 'Remarks'];
+    const row = [
+      receipt.transaction_date || '',
+      receipt.reference_number || '',
+      receipt.payment_mode || '',
+      receipt.amount || 0,
+      receipt.transtype || '',
+      receipt.registration_no || '',
+      receipt.user_name || '',
+      receipt.remarks || ''
+    ];
+    const ws = XLSX.utils.aoa_to_sheet([headers, row]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Receipt');
+    const refPart = this.sanitizeFilePart(receipt.reference_number ?? receipt.id ?? 'receipt');
+    XLSX.writeFile(wb, `Receipt_${refPart}.xlsx`);
+    this.toastService.success('Receipt Excel downloaded');
+  }
+
+  private downloadReceiptRowCSV(receipt: Transaction): void {
+    const headers = ['Date', 'Reference', 'Payment Mode', 'Amount', 'Type', 'Recipient ID', 'Recipient', 'Remarks'];
+    const row = [
+      receipt.transaction_date || '',
+      receipt.reference_number || '',
+      receipt.payment_mode || '',
+      receipt.amount || 0,
+      receipt.transtype || '',
+      receipt.registration_no || '',
+      receipt.user_name || '',
+      receipt.remarks || ''
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      row
+        .map(cell => `"${String(cell).replace(/"/g, '""')}"`)
+        .join(',')
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    const refPart = this.sanitizeFilePart(receipt.reference_number ?? receipt.id ?? 'receipt');
+    link.download = `Receipt_${refPart}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    this.toastService.success('Receipt CSV downloaded');
   }
 
   downloadCSV(): void {

@@ -40,3 +40,57 @@
 .page-numbers { display: flex; gap: 4px; }
 .page-number { width: 36px; height: 36px; border: 1px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; }
 .page-number.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-color: #667eea; }
+
+.download-wrapper { position: relative; display: inline-flex; align-items: center; }
+.action-btn.download { background: #e8f5e9; color: #4caf50; }
+.action-btn.download:hover { background: #4caf50; color: white; }
+
+.download-menu {
+  position: absolute;
+  top: auto;
+  bottom: auto;
+  right: 0;
+  min-width: 120px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  z-index: 10;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.download-menu.open-down {
+  top: 38px;
+  bottom: auto;
+}
+
+.download-menu.open-up {
+  top: auto;
+  bottom: 38px;
+}
+
+.download-menu-item {
+  background: none;
+  border: none;
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.download-menu-item:hover { background: #f3f3f3; }
+
+body.theme-dark .download-menu {
+  background: #1f1f1f;
+  border-color: #333;
+}
+
+body.theme-dark .download-menu-item { color: #ddd; }
+body.theme-dark .download-menu-item:hover { background: #2c2c2c; }
