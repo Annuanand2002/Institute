@@ -5,8 +5,8 @@
 <div class="form-container" *ngIf="isCreateMode || isEditMode">
   <div class="page-header">
     <div>
-      <h1>{{ isEditMode ? 'Edit Payment' : 'Create New Payment' }}</h1>
-      <p>{{ isEditMode ? 'Update payment details' : 'Fill in the details to record a new payment' }}</p>
+      <h1>{{ isEditMode ? 'Edit Receipt' : 'Create New Receipt' }}</h1>
+      <p>{{ isEditMode ? 'Update receipt details' : 'Fill in the details to record a new receipt (expense/disbursement)' }}</p>
     </div>
     <button class="cancel-btn" (click)="onCancel()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -19,7 +19,7 @@
   <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()" class="payment-form">
     <div class="form-section">
       <div class="section-header">
-        <h2>Payment Details</h2>
+        <h2>Receipt Details</h2>
         <span class="section-number">1</span>
       </div>
 
@@ -59,17 +59,17 @@
         </div>
 
         <div class="form-group">
-          <label for="transtype">Transaction Type</label>
+          <label for="transtype">Receipt Type</label>
           <select id="transtype" formControlName="transtype">
-            <option value="Fee">Fee</option>
-            <option value="Admission">Admission</option>
-            <option value="Other">Other</option>
+            <option value="Expense">Expense</option>
+            <option value="Salary">Salary</option>
+            <option value="Refund">Refund</option>
           </select>
         </div>
 
         <!-- Student / Staff Dropdown with Search -->
         <div class="form-group">
-          <label for="user_id">Student / Staff <span class="required">*</span></label>
+          <label for="user_id">Recipient (Student/Staff) <span class="required">*</span></label>
           <div class="searchable-dropdown" (click)="$event.stopPropagation()">
             <div class="dropdown-input-container">
               <input type="text" id="user_id" [value]="getSelectedStudentName() || studentSearchQuery"
@@ -90,18 +90,18 @@
             <div class="dropdown-menu" *ngIf="showStudentDropdown">
               <div class="dropdown-search">
                 <input type="text" [(ngModel)]="studentSearchQuery" [ngModelOptions]="{standalone: true}"
-                  (input)="onStudentSearch()" placeholder="Search student or staff..." class="search-input" (click)="$event.stopPropagation()" />
+                  (input)="onStudentSearch()" placeholder="Search recipient..." class="search-input" (click)="$event.stopPropagation()" />
               </div>
               <div class="dropdown-list">
                 <div *ngFor="let student of filteredStudents" class="dropdown-item"
                   (click)="selectStudent(student)" [class.selected]="paymentForm.get('user_id')?.value === student.id">
                   <div class="item-main">{{ student.regNo }} - {{ student.name }}{{ student.role ? ' (' + student.role + ')' : '' }}</div>
                 </div>
-                <div *ngIf="filteredStudents.length === 0" class="dropdown-empty">No students or staff found</div>
+                <div *ngIf="filteredStudents.length === 0" class="dropdown-empty">No recipients found</div>
               </div>
             </div>
           </div>
-          <div class="error-message" *ngIf="userId?.invalid && userId?.touched">Please select a student or staff</div>
+          <div class="error-message" *ngIf="userId?.invalid && userId?.touched">Please select a recipient</div>
         </div>
 
         <div class="form-group full-width">
@@ -114,7 +114,7 @@
     <div class="form-actions">
       <button type="button" class="btn-secondary" (click)="onCancel()" [disabled]="isSubmitting">Cancel</button>
       <button type="submit" class="btn-primary" [disabled]="isSubmitting || paymentForm.invalid">
-        <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update' : 'Create' }} Payment</span>
+        <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update' : 'Create' }} Receipt</span>
         <span *ngIf="isSubmitting" class="loading">
           <span class="spinner"></span>
           {{ isEditMode ? 'Updating...' : 'Creating...' }}

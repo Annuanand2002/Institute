@@ -43,7 +43,7 @@ export class PaymentTableComponent implements OnInit {
 
   loadData(): void {
     this.loadingService.show();
-    this.transactionService.getTransactions({ transtypes: 'Fee,Admission' }).subscribe({
+    this.transactionService.getTransactions({ transtypes: 'Expense,Salary,Refund' }).subscribe({
       next: (response) => {
         if (response.success) {
           this.allPayments = response.data;
@@ -52,7 +52,7 @@ export class PaymentTableComponent implements OnInit {
         this.loadingService.hide();
       },
       error: (err) => {
-        this.toastService.error(err?.error?.error || 'Failed to load payments');
+        this.toastService.error(err?.error?.error || 'Failed to load receipts');
         this.loadingService.hide();
       }
     });
@@ -195,14 +195,14 @@ export class PaymentTableComponent implements OnInit {
       let y = this.pdfHeaderFooter.addHeader(doc, header);
 
       doc.setFontSize(14);
-      doc.text('Payment Voucher', 14, y);
+      doc.text('Receipt Voucher', 14, y);
       y += 8;
 
       doc.setFontSize(10);
       doc.text(`Date: ${String(payment.transaction_date ?? '').substring(0, 10) || '-'}`, 18, y + 10);
       doc.text(`Reference: ${this.truncateForPDF(payment.reference_number, 25) || '-'}`, 18, y + 16);
       doc.text(`Mode: ${this.truncateForPDF(payment.payment_mode, 18) || '-'}`, 18, y + 22);
-      doc.text(`Student: ${this.truncateForPDF(payment.user_name, 30) || '-'}`, 18, y + 28);
+      doc.text(`Recipient: ${this.truncateForPDF(payment.user_name, 30) || '-'}`, 18, y + 28);
       doc.text(`Reg No: ${this.truncateForPDF(payment.registration_no, 18) || '-'}`, 18, y + 34);
 
       const amountStr = this.formatCurrencyForPDF(payment.amount || 0);
@@ -219,13 +219,13 @@ export class PaymentTableComponent implements OnInit {
 
       this.pdfHeaderFooter.addFooter(doc, footer);
       const refPart = this.sanitizeFilePart(payment.reference_number ?? payment.id ?? 'payment');
-      doc.save(`Payment_${refPart}.pdf`);
-      this.toastService.success('Payment PDF downloaded');
+      doc.save(`Receipt_${refPart}.pdf`);
+      this.toastService.success('Receipt PDF downloaded');
     });
   }
 
   private downloadPaymentRowExcel(payment: Transaction): void {
-    const headers = ['Date', 'Reference', 'Payment Mode', 'Amount', 'Transaction Type', 'Student ID', 'Student', 'Remarks'];
+    const headers = ['Date', 'Reference', 'Payment Mode', 'Amount', 'Type', 'Recipient ID', 'Recipient', 'Remarks'];
     const row = [
       payment.transaction_date || '',
       payment.reference_number || '',
@@ -238,14 +238,14 @@ export class PaymentTableComponent implements OnInit {
     ];
     const ws = XLSX.utils.aoa_to_sheet([headers, row]);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Payment');
+    XLSX.utils.book_append_sheet(wb, ws, 'Receipt');
     const refPart = this.sanitizeFilePart(payment.reference_number ?? payment.id ?? 'payment');
-    XLSX.writeFile(wb, `Payment_${refPart}.xlsx`);
-    this.toastService.success('Payment Excel downloaded');
+    XLSX.writeFile(wb, `Receipt_${refPart}.xlsx`);
+    this.toastService.success('Receipt Excel downloaded');
   }
 
   private downloadPaymentRowCSV(payment: Transaction): void {
-    const headers = ['Date', 'Reference', 'Payment Mode', 'Amount', 'Transaction Type', 'Student ID', 'Student', 'Remarks'];
+    const headers = ['Date', 'Reference', 'Payment Mode', 'Amount', 'Type', 'Recipient ID', 'Recipient', 'Remarks'];
     const row = [
       payment.transaction_date || '',
       payment.reference_number || '',
@@ -266,14 +266,14 @@ export class PaymentTableComponent implements OnInit {
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     const refPart = this.sanitizeFilePart(payment.reference_number ?? payment.id ?? 'payment');
-    link.download = `Payment_${refPart}.csv`;
+    link.download = `Receipt_${refPart}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
-    this.toastService.success('Payment CSV downloaded');
+    this.toastService.success('Receipt CSV downloaded');
   }
 
   downloadCSV(): void {
-    const headers = ['Date', 'Reference', 'Payment Mode', 'Amount', 'Transaction Type', 'Student ID', 'Student', 'Remarks'];
+    const headers = ['Date', 'Reference', 'Payment Mode', 'Amount', 'Type', 'Recipient ID', 'Recipient', 'Remarks'];
     const rows = this.filteredPayments.map(p => [
       p.transaction_date || '',
       p.reference_number || '',
@@ -288,7 +288,7 @@ export class PaymentTableComponent implements OnInit {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `payments_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `receipts_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
     this.toastService.success('CSV downloaded');
@@ -298,25 +298,25 @@ export class PaymentTableComponent implements OnInit {
     this.pdfHeaderFooter.getHeaderFooter().subscribe(({ header, footer }) => {
       const doc = new jsPDF();
       const startY = this.pdfHeaderFooter.addHeader(doc, header);
-      const headers = [['Date', 'Reference', 'Mode', 'Amount', 'Student ID', 'Student']];
+      const headers = [['Date', 'Reference', 'Type', 'Amount', 'Recipient ID', 'Recipient']];
       const rows = this.filteredPayments.map(p => [
         (p.transaction_date || '').substring(0, 10),
         (p.reference_number || '').substring(0, 15),
-        (p.payment_mode || '').substring(0, 10),
+        (p.transtype || '').substring(0, 10),
         this.formatCurrencyForPDF(p.amount || 0),
         (p.registration_no || '').substring(0, 15),
         (p.user_name || '').substring(0, 25)
       ]);
-      doc.text('Payments List', 14, startY);
+      doc.text('Receipts List', 14, startY);
       autoTable(doc, { head: headers, body: rows, theme: 'striped', styles: { fontSize: 9 }, headStyles: { fillColor: [102, 126, 234] }, startY: startY + 7 });
       this.pdfHeaderFooter.addFooter(doc, footer);
-      doc.save(`Payments_${new Date().getTime()}.pdf`);
+      doc.save(`Receipts_${new Date().getTime()}.pdf`);
       this.toastService.success('PDF downloaded');
     });
   }
 
   downloadExcel(): void {
-    const headers = ['Date', 'Reference', 'Payment Mode', 'Amount', 'Transaction Type', 'Student ID', 'Student', 'Remarks'];
+    const headers = ['Date', 'Reference', 'Payment Mode', 'Amount', 'Type', 'Recipient ID', 'Recipient', 'Remarks'];
     const rows = this.filteredPayments.map(p => [
       p.transaction_date || '',
       p.reference_number || '',
@@ -329,33 +329,33 @@ export class PaymentTableComponent implements OnInit {
     ]);
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Payments');
-    XLSX.writeFile(wb, `Payments_${new Date().getTime()}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, 'Receipts');
+    XLSX.writeFile(wb, `Receipts_${new Date().getTime()}.xlsx`);
     this.toastService.success('Excel downloaded');
   }
 
   addNew(): void {
-    this.router.navigate(['/dashboard/accounts/payment/create']);
+    this.router.navigate(['/dashboard/accounts/receipt/create']);
   }
 
   editPayment(payment: Transaction): void {
-    if (payment.id) this.router.navigate(['/dashboard/accounts/payment/edit', payment.id]);
+    if (payment.id) this.router.navigate(['/dashboard/accounts/receipt/edit', payment.id]);
   }
 
   deletePayment(payment: Transaction): void {
     if (!payment.id) return;
-    if (confirm(`Are you sure you want to delete payment ${payment.reference_number || payment.id}?`)) {
+    if (confirm(`Are you sure you want to delete receipt ${payment.reference_number || payment.id}?`)) {
       this.loadingService.show();
       this.transactionService.deleteTransaction(payment.id).subscribe({
         next: (response) => {
           if (response.success) {
-            this.toastService.success('Payment deleted successfully');
+            this.toastService.success('Receipt deleted successfully');
             this.loadData();
           }
           this.loadingService.hide();
         },
         error: (err) => {
-          this.toastService.error(err?.error?.error || 'Failed to delete payment');
+          this.toastService.error(err?.error?.error || 'Failed to delete receipt');
           this.loadingService.hide();
         }
       });
