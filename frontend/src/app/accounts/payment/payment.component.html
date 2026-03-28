@@ -67,37 +67,39 @@
           </select>
         </div>
 
-        <!-- Student / Staff Dropdown with Search -->
         <div class="form-group">
           <label for="user_id">Recipient (Student/Staff) <span class="required">*</span></label>
           <div class="searchable-dropdown" (click)="$event.stopPropagation()">
             <div class="dropdown-input-container">
-              <input type="text" id="user_id" [value]="getSelectedStudentName() || studentSearchQuery"
-                (focus)="showStudentDropdown = true" (click)="showStudentDropdown = true"
+              <input type="text" id="user_id" [value]="getSelectedRecipientName() || recipientSearchQuery"
+                (focus)="showRecipientDropdown = true" (click)="showRecipientDropdown = true"
                 placeholder="Search by name or reg no..." class="dropdown-input" readonly />
               <button type="button" class="clear-btn" *ngIf="paymentForm.get('user_id')?.value"
-                (click)="clearStudentSelection(); $event.stopPropagation()" title="Clear selection">
+                (click)="clearRecipientSelection(); $event.stopPropagation()" title="Clear selection">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </button>
-              <button type="button" class="dropdown-arrow" (click)="showStudentDropdown = !showStudentDropdown">
+              <button type="button" class="dropdown-arrow" (click)="showRecipientDropdown = !showRecipientDropdown">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </button>
             </div>
-            <div class="dropdown-menu" *ngIf="showStudentDropdown">
+            <div class="dropdown-menu" *ngIf="showRecipientDropdown">
               <div class="dropdown-search">
-                <input type="text" [(ngModel)]="studentSearchQuery" [ngModelOptions]="{standalone: true}"
-                  (input)="onStudentSearch()" placeholder="Search recipient..." class="search-input" (click)="$event.stopPropagation()" />
+                <input type="text" [(ngModel)]="recipientSearchQuery" [ngModelOptions]="{standalone: true}"
+                  (input)="onRecipientSearch()" placeholder="Search student or staff..." class="search-input" (click)="$event.stopPropagation()" />
               </div>
               <div class="dropdown-list">
-                <div *ngFor="let student of filteredStudents" class="dropdown-item"
-                  (click)="selectStudent(student)" [class.selected]="paymentForm.get('user_id')?.value === student.id">
-                  <div class="item-main">{{ student.regNo }} - {{ student.name }}{{ student.role ? ' (' + student.role + ')' : '' }}</div>
+                <div *ngFor="let r of filteredRecipients" class="dropdown-item"
+                  (click)="selectRecipient(r)" [class.selected]="paymentForm.get('user_id')?.value === r.id">
+                  <div class="item-row">
+                    <div class="item-main">{{ r.regNo }} - {{ r.name }}</div>
+                    <span class="item-role" [class.student]="r.roleLabel === 'Student'" [class.staff]="r.roleLabel === 'Staff'">{{ r.roleLabel }}</span>
+                  </div>
                 </div>
-                <div *ngIf="filteredStudents.length === 0" class="dropdown-empty">No recipients found</div>
+                <div *ngIf="filteredRecipients.length === 0" class="dropdown-empty">No students or staff found</div>
               </div>
             </div>
           </div>

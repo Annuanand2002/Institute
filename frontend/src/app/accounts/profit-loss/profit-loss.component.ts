@@ -37,6 +37,9 @@ export class ProfitLossComponent implements OnInit {
   totalSalary = 0;   // kept for backward compatibility; same as totalExpenses
   totalExpenses = 0; // sum of all receipts (Expense + Salary + Refund)
   profitLoss = 0;
+  /** Row counts for the active period (after date filter), for summary card context */
+  paymentsInCount = 0;
+  expensesOutCount = 0;
   isLoading = false;
 
   dateFilterPresets: { key: DateFilterPreset; label: string }[] = [
@@ -88,7 +91,7 @@ export class ProfitLossComponent implements OnInit {
   loadData(): void {
     this.isLoading = true;
     this.loadingService.show();
-    const paymentTypes = 'Fee,Admission';
+    const paymentTypes = 'Fee,Admission,Opening Balance,Other';
     const receiptTypes = 'Expense,Salary,Refund';
 
     let loaded = 0;
@@ -117,6 +120,12 @@ export class ProfitLossComponent implements OnInit {
       },
       error: () => done()
     });
+  }
+
+  /** Coerce API amounts (often strings from MySQL) so card totals sum correctly */
+  private txnAmount(v: unknown): number {
+    const n = typeof v === 'number' ? v : parseFloat(String(v ?? ''));
+    return Number.isFinite(n) ? n : 0;
   }
 
   private getDateRange(): { start: Date | null; end: Date } {
@@ -150,11 +159,11 @@ export class ProfitLossComponent implements OnInit {
   }
 
   private filterByDateRange<T extends { transaction_date?: string }>(list: T[]): T[] {
-    const { start } = this.getDateRange();
+    const { start, end } = this.getDateRange();
     if (!start) return list;
     return list.filter(t => {
       const dt = t.transaction_date ? new Date(t.transaction_date) : null;
-      return dt && dt >= start;
+      return !!dt && !isNaN(dt.getTime()) && dt >= start && dt <= end;
     });
   }
 
@@ -167,8 +176,10 @@ export class ProfitLossComponent implements OnInit {
     const filteredPayments = this.filterByDateRange(this.payments);
     const filteredReceipts = this.filterByDateRange(this.receipts);
 
-    this.totalAmount = filteredPayments.reduce((s, t) => s + (t.amount || 0), 0);
-    this.totalExpenses = filteredReceipts.reduce((s, t) => s + (t.amount || 0), 0);
+    this.paymentsInCount = filteredPayments.length;
+    this.expensesOutCount = filteredReceipts.length;
+    this.totalAmount = filteredPayments.reduce((s, t) => s + this.txnAmount(t.amount), 0);
+    this.totalExpenses = filteredReceipts.reduce((s, t) => s + this.txnAmount(t.amount), 0);
     this.totalSalary = this.totalExpenses; // alias for exports/charts that used "salary"
     this.profitLoss = this.totalAmount - this.totalExpenses;
 
@@ -179,7 +190,7 @@ export class ProfitLossComponent implements OnInit {
       transtype: t.transtype || 'Fee',
       studentOrRecipientId: t.registration_no || '-',
       studentOrRecipient: t.user_name || '-',
-      amount: t.amount || 0
+      amount: this.txnAmount(t.amount)
     }));
 
     const receiptRows: ProfitLossRow[] = filteredReceipts.map(t => ({
@@ -189,7 +200,7 @@ export class ProfitLossComponent implements OnInit {
       transtype: t.transtype || 'Expense',
       studentOrRecipientId: t.registration_no || '-',
       studentOrRecipient: t.user_name || '-',
-      amount: t.amount || 0
+      amount: this.txnAmount(t.amount)
     }));
 
     this.combinedRows = [...paymentRows, ...receiptRows].sort((a, b) => {
@@ -333,8 +344,8 @@ export class ProfitLossComponent implements OnInit {
       ]
     };
 
-    const totalPay = filteredPayments.reduce((s, t) => s + (t.amount || 0), 0);
-    const totalExp = filteredReceipts.reduce((s, t) => s + (t.amount || 0), 0);
+    const totalPay = filteredPayments.reduce((s, t) => s + this.txnAmount(t.amount), 0);
+    const totalExp = filteredReceipts.reduce((s, t) => s + this.txnAmount(t.amount), 0);
     this.doughnutChartData = {
       labels: ['Amount (In)', 'Expenses (Out)'],
       datasets: [{ data: [totalPay || 0.01, totalExp || 0.01], backgroundColor: ['#10b981', '#ef4444'] }]
@@ -364,7 +375,7 @@ export class ProfitLossComponent implements OnInit {
           const dt = t.transaction_date ? new Date(t.transaction_date) : null;
           return dt && dt >= d && dt < next;
         })
-        .reduce((s, t) => s + (t.amount || 0), 0);
+        .reduce((s, t) => s + this.txnAmount(t.amount), 0);
     });
   }
 }

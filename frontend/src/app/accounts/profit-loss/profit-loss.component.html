@@ -31,14 +31,17 @@
       <div class="summary-card payments-card">
         <span class="summary-label">Amount (Payments In)</span>
         <span class="summary-value">{{ formatCurrency(totalAmount) }}</span>
+        <span class="summary-meta">Sum of {{ paymentsInCount }} payment{{ paymentsInCount === 1 ? '' : 's' }} in period</span>
       </div>
       <div class="summary-card receipts-card">
         <span class="summary-label">Expenses (Out)</span>
         <span class="summary-value">{{ formatCurrency(totalExpenses) }}</span>
+        <span class="summary-meta">Sum of {{ expensesOutCount }} expense{{ expensesOutCount === 1 ? '' : 's' }} in period</span>
       </div>
       <div class="summary-card profit-loss-card" [class.profit]="isProfit" [class.loss]="!isProfit">
         <span class="summary-label">{{ isProfit ? 'Profit' : 'Loss' }}</span>
         <span class="summary-value">{{ formatCurrency(isProfit ? profitLoss : -profitLoss) }}</span>
+        <span class="summary-formula">{{ formatCurrency(totalAmount) }} − {{ formatCurrency(totalExpenses) }}</span>
       </div>
     </div>
 

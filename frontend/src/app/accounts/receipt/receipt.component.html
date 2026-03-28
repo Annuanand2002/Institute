@@ -63,6 +63,7 @@
           <select id="transtype" formControlName="transtype">
             <option value="Fee">Fee</option>
             <option value="Admission">Admission</option>
+            <option value="Opening Balance">Opening Balance</option>
             <option value="Other">Other</option>
           </select>
         </div>
@@ -94,7 +95,10 @@
               <div class="dropdown-list">
                 <div *ngFor="let r of filteredRecipients" class="dropdown-item"
                   (click)="selectRecipient(r)" [class.selected]="receiptForm.get('user_id')?.value === r.id">
-                  <div class="item-main">{{ r.regNo }} - {{ r.name }}</div>
+                  <div class="item-row">
+                    <div class="item-main">{{ r.regNo }} - {{ r.name }}</div>
+                    <span class="item-role" [class.student]="r.roleLabel === 'Student'" [class.staff]="r.roleLabel === 'Staff'">{{ r.roleLabel }}</span>
+                  </div>
                 </div>
                 <div *ngIf="filteredRecipients.length === 0" class="dropdown-empty">No students or staff found</div>
               </div>

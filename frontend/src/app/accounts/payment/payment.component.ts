@@ -1,16 +1,15 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ToastService } from '../../services/toast.service';
 import { TransactionService, Transaction } from '../../services/transaction.service';
 import { UserService, User } from '../../services/user.service';
-import { PaymentTableComponent } from './payment-table/payment-table.component';
 
-interface StudentOption {
+interface RecipientOption {
   id: number;
   regNo: string;
   name: string;
-  role?: string; // 'Student' | 'Staff' for display
+  roleLabel: 'Student' | 'Staff';
 }
 
 @Component({
@@ -24,11 +23,11 @@ export class PaymentComponent implements OnInit, OnDestroy {
   isCreateMode = false;
   isEditMode = false;
   paymentId: number | null = null;
-  students: StudentOption[] = [];
-  filteredStudents: StudentOption[] = [];
-  studentSearchQuery = '';
-  selectedStudentName = '';
-  showStudentDropdown = false;
+  recipients: RecipientOption[] = [];
+  filteredRecipients: RecipientOption[] = [];
+  recipientSearchQuery = '';
+  selectedRecipientName = '';
+  showRecipientDropdown = false;
 
   constructor(
     private fb: FormBuilder,
@@ -50,14 +49,14 @@ export class PaymentComponent implements OnInit, OnDestroy {
     if (url.includes('/create')) {
       this.isCreateMode = true;
       this.isEditMode = false;
-      this.loadStudents();
+      this.loadRecipients();
       this.initializeForm();
       this.generateReferenceNumber();
     } else if (url.includes('/edit/')) {
       this.isCreateMode = false;
       this.isEditMode = true;
       this.paymentId = +(this.route.snapshot.paramMap.get('id') || 0);
-      this.loadStudents();
+      this.loadRecipients();
       this.initializeForm();
       if (this.paymentId) this.loadPaymentData(this.paymentId);
     } else {
@@ -73,7 +72,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   private handleDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
     if (!target.closest('.searchable-dropdown')) {
-      this.showStudentDropdown = false;
+      this.showRecipientDropdown = false;
     }
   }
 
@@ -89,15 +88,15 @@ export class PaymentComponent implements OnInit, OnDestroy {
     });
   }
 
-  private loadStudents(): void {
-    const students: StudentOption[] = [];
-    const staff: StudentOption[] = [];
+  private loadRecipients(): void {
+    const students: RecipientOption[] = [];
+    const staff: RecipientOption[] = [];
     let done = 0;
     const checkDone = () => {
       done++;
       if (done >= 2) {
-        this.students = [...students, ...staff].sort((a, b) => a.name.localeCompare(b.name));
-        this.filteredStudents = [...this.students];
+        this.recipients = [...students, ...staff].sort((a, b) => a.name.localeCompare(b.name));
+        this.filteredRecipients = [...this.recipients];
       }
     };
 
@@ -110,7 +109,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
               id: u.id!,
               regNo: u.registration_no || `STU${u.id}`,
               name: u.name || '',
-              role: 'Student'
+              roleLabel: 'Student'
             }));
         }
         checkDone();
@@ -127,7 +126,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
               id: u.id!,
               regNo: u.registration_no || `STF${u.id}`,
               name: u.name || '',
-              role: 'Staff'
+              roleLabel: 'Staff'
             }));
         }
         checkDone();
@@ -136,45 +135,49 @@ export class PaymentComponent implements OnInit, OnDestroy {
     });
   }
 
-  onStudentSearch(): void {
-    if (!this.studentSearchQuery.trim()) {
-      this.filteredStudents = [...this.students];
+  onRecipientSearch(): void {
+    if (!this.recipientSearchQuery.trim()) {
+      this.filteredRecipients = [...this.recipients];
       return;
     }
-    const query = this.studentSearchQuery.toLowerCase();
-    this.filteredStudents = this.students.filter(s =>
-      s.regNo.toLowerCase().includes(query) || s.name.toLowerCase().includes(query)
+    const query = this.recipientSearchQuery.toLowerCase();
+    this.filteredRecipients = this.recipients.filter(r =>
+      r.regNo.toLowerCase().includes(query) ||
+      r.name.toLowerCase().includes(query) ||
+      r.roleLabel.toLowerCase().includes(query)
     );
   }
 
-  selectStudent(student: StudentOption): void {
-    this.paymentForm.patchValue({ user_id: student.id });
-    const roleLabel = student.role ? ` (${student.role})` : '';
-    this.selectedStudentName = `${student.regNo} - ${student.name}${roleLabel}`;
-    this.showStudentDropdown = false;
-    this.filteredStudents = [...this.students];
-    this.studentSearchQuery = '';
+  selectRecipient(r: RecipientOption): void {
+    this.paymentForm.patchValue({ user_id: r.id });
+    this.selectedRecipientName = this.formatRecipientLabel(r);
+    this.showRecipientDropdown = false;
+    this.filteredRecipients = [...this.recipients];
+    this.recipientSearchQuery = '';
   }
 
-  clearStudentSelection(): void {
+  clearRecipientSelection(): void {
     this.paymentForm.patchValue({ user_id: null });
-    this.studentSearchQuery = '';
-    this.selectedStudentName = '';
-    this.filteredStudents = [...this.students];
-    this.showStudentDropdown = false;
+    this.recipientSearchQuery = '';
+    this.selectedRecipientName = '';
+    this.filteredRecipients = [...this.recipients];
+    this.showRecipientDropdown = false;
   }
 
-  getSelectedStudentName(): string {
-    if (this.selectedStudentName) return this.selectedStudentName;
+  getSelectedRecipientName(): string {
+    if (this.selectedRecipientName) return this.selectedRecipientName;
     const uid = this.paymentForm.get('user_id')?.value;
     if (!uid) return '';
-    const s = this.students.find(x => x.id === uid);
-    if (s) {
-      const roleLabel = s.role ? ` (${s.role})` : '';
-      this.selectedStudentName = `${s.regNo} - ${s.name}${roleLabel}`;
-      return this.selectedStudentName;
+    const r = this.recipients.find(x => x.id === uid);
+    if (r) {
+      this.selectedRecipientName = this.formatRecipientLabel(r);
+      return this.selectedRecipientName;
     }
     return '';
+  }
+
+  private formatRecipientLabel(r: RecipientOption): string {
+    return `${r.regNo} - ${r.name} (${r.roleLabel})`;
   }
 
   private generateReferenceNumber(): void {
@@ -204,11 +207,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
             remarks: p.remarks || '',
             user_id: p.user_id
           });
-          const s = this.students.find(x => x.id === p.user_id);
-          if (s) {
-            const roleLabel = s.role ? ` (${s.role})` : '';
-            this.selectedStudentName = `${s.regNo} - ${s.name}${roleLabel}`;
-          }
+          const r = this.recipients.find(x => x.id === p.user_id);
+          if (r) this.selectedRecipientName = this.formatRecipientLabel(r);
         }
       },
       error: () => this.toastService.error('Failed to load receipt')

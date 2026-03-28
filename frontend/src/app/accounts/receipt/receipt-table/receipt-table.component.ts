@@ -8,7 +8,9 @@ import { ToastService } from '../../../services/toast.service';
 import { LoadingService } from '../../../services/loading.service';
 import { PdfHeaderFooterService } from '../../../services/pdf-header-footer.service';
 
-const RECEIPT_TRANSTYPES = 'Fee,Admission';
+// In the intentionally swapped UI, this table is shown on the "Payment" page.
+// So it must include opening balances as payment-type transactions.
+const RECEIPT_TRANSTYPES = 'Fee,Admission,Opening Balance,Other';
 
 @Component({
   selector: 'app-receipt-table',
@@ -48,7 +50,7 @@ export class ReceiptTableComponent implements OnInit {
     this.transactionService.getTransactions({ transtypes: RECEIPT_TRANSTYPES }).subscribe({
       next: (response) => {
         if (response.success) {
-          this.allReceipts = response.data;
+          this.allReceipts = response.data || [];
           this.filteredReceipts = [...this.allReceipts];
         }
         this.loadingService.hide();

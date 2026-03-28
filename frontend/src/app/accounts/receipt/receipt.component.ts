@@ -10,6 +10,7 @@ interface RecipientOption {
   id: number;
   regNo: string;
   name: string;
+  roleLabel: 'Student' | 'Staff';
 }
 
 @Component({
@@ -94,12 +95,14 @@ export class ReceiptComponent implements OnInit, OnDestroy {
             const students = (sr.success ? sr.data || [] : []).filter((u: User) => u.id != null).map((u: User) => ({
               id: u.id!,
               regNo: u.registration_no || `STU${u.id}`,
-              name: u.name || ''
+              name: u.name || '',
+              roleLabel: 'Student' as const
             }));
             const staff = (st.success ? st.data || [] : []).filter((u: User) => u.id != null).map((u: User) => ({
               id: u.id!,
               regNo: u.registration_no || `STF${u.id}`,
-              name: u.name || ''
+              name: u.name || '',
+              roleLabel: 'Staff' as const
             }));
             this.recipients = [...students, ...staff];
             this.filteredRecipients = [...this.recipients];
@@ -116,13 +119,15 @@ export class ReceiptComponent implements OnInit, OnDestroy {
     }
     const query = this.recipientSearchQuery.toLowerCase();
     this.filteredRecipients = this.recipients.filter(r =>
-      r.regNo.toLowerCase().includes(query) || r.name.toLowerCase().includes(query)
+      r.regNo.toLowerCase().includes(query) ||
+      r.name.toLowerCase().includes(query) ||
+      r.roleLabel.toLowerCase().includes(query)
     );
   }
 
   selectRecipient(r: RecipientOption): void {
     this.receiptForm.patchValue({ user_id: r.id });
-    this.selectedRecipientName = `${r.regNo} - ${r.name}`;
+    this.selectedRecipientName = this.formatRecipientLabel(r);
     this.showRecipientDropdown = false;
     this.filteredRecipients = [...this.recipients];
     this.recipientSearchQuery = '';
@@ -142,14 +147,14 @@ export class ReceiptComponent implements OnInit, OnDestroy {
     if (!uid) return '';
     const r = this.recipients.find(x => x.id === uid);
     if (r) {
-      this.selectedRecipientName = `${r.regNo} - ${r.name}`;
+      this.selectedRecipientName = this.formatRecipientLabel(r);
       return this.selectedRecipientName;
     }
     return '';
   }
 
   private generateReferenceNumber(): void {
-    this.transactionService.getTransactions({ transtypes: 'Fee,Admission' }).subscribe({
+    this.transactionService.getTransactions({ transtypes: 'Fee,Admission,Opening Balance,Other' }).subscribe({
       next: (response) => {
         const count = (response.success && response.data ? response.data.length : 0) + 1;
         const ref = 'P' + String(count).padStart(5, '0'); // P00001, P00002, ...
@@ -176,7 +181,7 @@ export class ReceiptComponent implements OnInit, OnDestroy {
             user_id: p.user_id
           });
           const r = this.recipients.find(x => x.id === p.user_id);
-          if (r) this.selectedRecipientName = `${r.regNo} - ${r.name}`;
+          if (r) this.selectedRecipientName = this.formatRecipientLabel(r);
         }
       },
       error: () => this.toastService.error('Failed to load payment')
@@ -247,6 +252,10 @@ export class ReceiptComponent implements OnInit, OnDestroy {
       control.markAsTouched();
       if (control instanceof FormGroup) this.markFormGroupTouched(control);
     });
+  }
+
+  private formatRecipientLabel(r: RecipientOption): string {
+    return `${r.regNo} - ${r.name} (${r.roleLabel})`;
   }
 
   get date() { return this.receiptForm.get('transaction_date'); }

@@ -177,7 +177,7 @@ export class DashboardComponent implements OnInit {
   }
 
   private loadAllData(options?: { minDisplayMs?: number }): void {
-    const paymentTypes = 'Fee,Admission';
+    const paymentTypes = 'Fee,Admission,Opening Balance,Other';
     const receiptTypes = 'Expense,Salary,Refund';
     let loaded = 0;
     const total = 8;
