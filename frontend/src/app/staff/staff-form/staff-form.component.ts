@@ -21,6 +21,7 @@ export class StaffFormComponent implements OnInit, OnDestroy {
   isEditMode = false;
   staffId: number | null = null;
   profileImageDataUrl: string | null = null;
+  showProfileImageError = false;
   private pendingProfileImage: string | null = null;
   private destroy$ = new Subject<void>();
 
@@ -57,16 +58,16 @@ export class StaffFormComponent implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     this.staffForm = this.fb.group({
-      registration_no: [''],
+      registration_no: ['', [Validators.required]],
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', Validators.email],
       personal_number: [''],
       educational_qualification: [''],
       permanent_address: [''],
       local_address: [''],
-      date_of_birth: [''],
-      gender: [''],
-      is_active: [true]
+      date_of_birth: ['', [Validators.required]],
+      gender: ['', [Validators.required]],
+      is_active: [null as boolean | null, [Validators.required]]
     });
   }
 
@@ -103,6 +104,12 @@ export class StaffFormComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
+    if (!this.profileImageDataUrl && !this.pendingProfileImage) {
+      this.showProfileImageError = true;
+      this.toastService.error('Profile image is required');
+      return;
+    }
+
     if (this.staffForm.invalid) {
       this.markFormGroupTouched();
       this.toastService.error('Please fill all required fields correctly');
@@ -173,6 +180,7 @@ export class StaffFormComponent implements OnInit, OnDestroy {
       const dataUrl = reader.result as string;
       this.profileImageDataUrl = dataUrl;
       this.pendingProfileImage = dataUrl;
+      this.showProfileImageError = false;
     };
     reader.readAsDataURL(file);
     input.value = '';
@@ -189,4 +197,8 @@ export class StaffFormComponent implements OnInit, OnDestroy {
   }
 
   get name() { return this.staffForm.get('name'); }
+  get registrationNo() { return this.staffForm.get('registration_no'); }
+  get dateOfBirth() { return this.staffForm.get('date_of_birth'); }
+  get gender() { return this.staffForm.get('gender'); }
+  get isActive() { return this.staffForm.get('is_active'); }
 }

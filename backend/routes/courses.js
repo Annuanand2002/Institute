@@ -86,6 +86,18 @@ router.post('/', async (req, res) => {
     if (!course_name || typeof course_name !== 'string' || course_name.trim().length === 0) {
       return res.status(400).json({ success: false, error: 'Course name is required' });
     }
+    if (batch_id == null || Number.isNaN(Number(batch_id)) || Number(batch_id) <= 0) {
+      return res.status(400).json({ success: false, error: 'Batch is required' });
+    }
+    if (duration == null || Number.isNaN(Number(duration)) || Number(duration) <= 0) {
+      return res.status(400).json({ success: false, error: 'Duration is required' });
+    }
+    if (total_fee == null || Number.isNaN(Number(total_fee)) || Number(total_fee) <= 0) {
+      return res.status(400).json({ success: false, error: 'Total fee is required' });
+    }
+    if (is_active === null || is_active === undefined || (is_active !== true && is_active !== false && is_active !== 1 && is_active !== 0)) {
+      return res.status(400).json({ success: false, error: 'Status is required' });
+    }
 
     const [result] = await db.execute(
       `INSERT INTO course (
@@ -95,9 +107,9 @@ router.post('/', async (req, res) => {
         course_code || null,
         course_name.trim(),
         description || null,
-        duration || null,
-        total_fee != null ? total_fee : null,
-        batch_id || null,
+        Number(duration),
+        Number(total_fee),
+        Number(batch_id),
         !!is_active,
         created_by || null
       ]

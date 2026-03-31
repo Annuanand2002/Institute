@@ -82,7 +82,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
       reference_number: [{ value: '', disabled: true }, []],
       payment_mode: ['Cash', [Validators.required]],
       amount: ['', [Validators.required, Validators.min(0.01)]],
-      transtype: ['Expense'],
+      transtype: ['Expense', [Validators.required]],
       remarks: [''],
       user_id: [null, Validators.required]
     });
@@ -283,5 +283,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   get date() { return this.paymentForm.get('transaction_date'); }
   get amount() { return this.paymentForm.get('amount'); }
+  get transtype() { return this.paymentForm.get('transtype'); }
   get userId() { return this.paymentForm.get('user_id'); }
 }

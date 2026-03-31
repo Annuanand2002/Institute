@@ -24,6 +24,7 @@ export class StudentFormComponent implements OnInit, OnDestroy {
   isEditMode = false;
   studentId: number | null = null;
   profileImageDataUrl: string | null = null;
+  showProfileImageError = false;
   private pendingProfileImage: string | null = null;
   private destroy$ = new Subject<void>();
 
@@ -60,11 +61,11 @@ export class StudentFormComponent implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     this.studentForm = this.fb.group({
-      registration_no: [''],
+      registration_no: ['', [Validators.required]],
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', Validators.email],
-      personal_number: [''],
-      course_id: [null],
+      personal_number: ['', [Validators.required]],
+      course_id: [null, [Validators.required]],
       date_of_birth: [''],
       gender: [''],
       permanent_address: [''],
@@ -73,8 +74,8 @@ export class StudentFormComponent implements OnInit, OnDestroy {
       relationship_with_guardian: [''],
       occupation_of_guardian: [''],
       is_active: [true],
-      payment_mode: [''],
-      adjustment_amount: ['']
+      payment_mode: ['', [Validators.required]],
+      adjustment_amount: [0]
     });
   }
 
@@ -116,7 +117,7 @@ export class StudentFormComponent implements OnInit, OnDestroy {
             occupation_of_guardian: u.occupation_of_guardian || '',
             is_active: u.is_active !== false,
             payment_mode: (u as any).payment_mode || '',
-            adjustment_amount: (u as any).adjustment_amount ?? ''
+            adjustment_amount: (u as any).adjustment_amount ?? 0
           });
           this.updateSelectedBatchFromForm();
         }
@@ -144,6 +145,12 @@ export class StudentFormComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
+    if (!this.profileImageDataUrl && !this.pendingProfileImage) {
+      this.showProfileImageError = true;
+      this.toastService.error('Profile image is required');
+      return;
+    }
+
     if (this.studentForm.invalid) {
       this.markFormGroupTouched();
       this.toastService.error('Please fill all required fields correctly');
@@ -171,7 +178,7 @@ export class StudentFormComponent implements OnInit, OnDestroy {
       occupation_of_guardian: formValue.occupation_of_guardian || undefined,
       is_active: formValue.is_active,
       payment_mode,
-      adjustment_amount: formValue.adjustment_amount === '' || Number.isNaN(numericAdjustment) ? undefined : numericAdjustment,
+      adjustment_amount: Number.isNaN(numericAdjustment) ? 0 : numericAdjustment,
       user_role_id: STUDENT_ROLE_ID,
       application_date: this.isEditMode ? undefined : (new Date().toISOString().split('T')[0])
     };
@@ -225,6 +232,7 @@ export class StudentFormComponent implements OnInit, OnDestroy {
       const dataUrl = reader.result as string;
       this.profileImageDataUrl = dataUrl;
       this.pendingProfileImage = dataUrl;
+      this.showProfileImageError = false;
     };
     reader.readAsDataURL(file);
     input.value = '';
@@ -241,4 +249,8 @@ export class StudentFormComponent implements OnInit, OnDestroy {
   }
 
   get name() { return this.studentForm.get('name'); }
+  get registrationNo() { return this.studentForm.get('registration_no'); }
+  get phone() { return this.studentForm.get('personal_number'); }
+  get courseId() { return this.studentForm.get('course_id'); }
+  get paymentMode() { return this.studentForm.get('payment_mode'); }
 }

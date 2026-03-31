@@ -37,7 +37,7 @@
     </div>
     </ng-container>
     <ng-container *ngIf="isLoading">
-      <div *ngFor="let i of [1,2,3,4,5,6,7]" class="stat-card stat-card-skeleton">
+      <div *ngFor="let i of [1,2,3,4]" class="stat-card stat-card-skeleton">
         <app-skeleton variant="rectangular" [width]="'56px'" [height]="'56px'" class="stat-skeleton-icon"></app-skeleton>
         <div class="stat-skeleton-content">
           <app-skeleton variant="text" [width]="'80px'" [height]="'28px'"></app-skeleton>
@@ -157,21 +157,29 @@
       <table class="recent-table">
         <thead>
           <tr>
+            <th>Staff ID</th>
             <th>Name</th>
             <th>Email</th>
-            <th>Course</th>
             <th>Phone</th>
+            <th>Qualification</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let s of staff.slice(0, 8)" class="recent-row">
+            <td>{{ s.registration_no || '-' }}</td>
             <td>{{ s.name || '-' }}</td>
             <td>{{ s.email || '-' }}</td>
-            <td>{{ s.course_name || '-' }}</td>
             <td>{{ s.personal_number || s.home_number || '-' }}</td>
+            <td>{{ s.educational_qualification || '-' }}</td>
+            <td>
+              <span class="tx-badge" [class.in]="s.is_active !== false" [class.out]="s.is_active === false">
+                {{ s.is_active !== false ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
           </tr>
           <tr *ngIf="staff.length === 0">
-            <td colspan="4" class="no-data">No staff yet</td>
+            <td colspan="6" class="no-data">No staff yet</td>
           </tr>
         </tbody>
       </table>

@@ -210,8 +210,14 @@ export class DashboardComponent implements OnInit {
       next: (r) => { this.students = r.success ? (r.data || []) : []; done(); },
       error: () => done()
     });
-    this.userService.getUsers({ role: 'Staff', is_active: true }).subscribe({
-      next: (r) => { this.staff = r.success ? (r.data || []) : []; done(); },
+    this.userService.getUsers({ role: 'Staff' }).subscribe({
+      next: (r) => {
+        this.staff = (r.success ? (r.data || []) : []).map(s => ({
+          ...s,
+          is_active: s.is_active === true || (s as any).is_active === 1
+        }));
+        done();
+      },
       error: () => done()
     });
     this.courseService.getCourses().subscribe({
@@ -320,10 +326,7 @@ export class DashboardComponent implements OnInit {
       { label: 'Total Students', value: this.students.length, icon: '👥', color: '#3b82f6' },
       { label: 'Total Staff', value: this.staff.length, icon: '👨‍🏫', color: '#10b981' },
       { label: 'Active Courses', value: activeCourses, icon: '📚', color: '#f59e0b' },
-      { label: 'Batches', value: this.batches.length, icon: '📦', color: '#8b5cf6' },
-      { label: 'Total Payments', value: this.formatCurrency(totalPayments), icon: '💰', color: '#10b981' },
-      { label: 'Total Receipts', value: this.formatCurrency(totalReceipts), icon: '📤', color: '#ef4444' },
-      { label: 'Net Balance', value: this.formatCurrency(totalPayments - totalReceipts), icon: '📊', color: totalPayments >= totalReceipts ? '#10b981' : '#ef4444' }
+      { label: 'Batches', value: this.batches.length, icon: '📦', color: '#8b5cf6' }
     ];
   }
 

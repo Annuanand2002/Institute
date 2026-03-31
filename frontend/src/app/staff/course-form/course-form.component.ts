@@ -47,10 +47,10 @@ export class CourseFormComponent implements OnInit {
       course_code: [''],
       course_name: ['', [Validators.required, Validators.minLength(2)]],
       description: [''],
-      duration: [''],
-      total_fee: [null as number | null],
-      batch_id: [null as number | null],
-      is_active: [true]
+      duration: [null as number | null, [Validators.required, Validators.min(1)]],
+      total_fee: [null as number | null, [Validators.required, Validators.min(0.01)]],
+      batch_id: [null as number | null, [Validators.required]],
+      is_active: [null as boolean | null, [Validators.required]]
     });
   }
 
@@ -149,4 +149,8 @@ export class CourseFormComponent implements OnInit {
 
   get course_code() { return this.courseForm.get('course_code'); }
   get course_name() { return this.courseForm.get('course_name'); }
+  get duration() { return this.courseForm.get('duration'); }
+  get total_fee() { return this.courseForm.get('total_fee'); }
+  get batch_id() { return this.courseForm.get('batch_id'); }
+  get is_active() { return this.courseForm.get('is_active'); }
 }

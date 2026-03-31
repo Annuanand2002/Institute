@@ -81,7 +81,7 @@ export class ReceiptComponent implements OnInit, OnDestroy {
       reference_number: [{ value: '', disabled: true }, []],
       payment_mode: ['Cash', [Validators.required]],
       amount: ['', [Validators.required, Validators.min(0.01)]],
-      transtype: ['Fee'],
+      transtype: ['Fee', [Validators.required]],
       remarks: [''],
       user_id: [null, Validators.required]
     });
@@ -260,5 +260,6 @@ export class ReceiptComponent implements OnInit, OnDestroy {
 
   get date() { return this.receiptForm.get('transaction_date'); }
   get amount() { return this.receiptForm.get('amount'); }
+  get transtype() { return this.receiptForm.get('transtype'); }
   get userId() { return this.receiptForm.get('user_id'); }
 }

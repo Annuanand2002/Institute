@@ -29,11 +29,14 @@
           <input type="file" accept="image/*" (change)="onProfileImageChange($event)" class="file-input" />
           {{ profileImageDataUrl ? 'Change photo' : 'Upload photo' }}
         </label>
+        <div class="error-message" *ngIf="showProfileImageError">Profile image is required</div>
       </div>
       <div class="form-grid">
         <div class="form-group">
-          <label for="registration_no">Registration No</label>
-          <input type="text" id="registration_no" formControlName="registration_no" placeholder="e.g., REG001" />
+          <label for="registration_no">Registration No <span class="required">*</span></label>
+          <input type="text" id="registration_no" formControlName="registration_no" placeholder="e.g., REG001"
+            [class.error]="registrationNo?.invalid && registrationNo?.touched" />
+          <div class="error-message" *ngIf="registrationNo?.invalid && registrationNo?.touched">Registration no is required</div>
         </div>
         <div class="form-group">
           <label for="name">Name <span class="required">*</span></label>
@@ -51,15 +54,19 @@
           <div class="error-message" *ngIf="studentForm.get('email')?.invalid && studentForm.get('email')?.touched">Enter a valid email</div>
         </div>
         <div class="form-group">
-          <label for="personal_number">Phone</label>
-          <input type="text" id="personal_number" formControlName="personal_number" placeholder="Phone number" />
+          <label for="personal_number">Phone <span class="required">*</span></label>
+          <input type="text" id="personal_number" formControlName="personal_number" placeholder="Phone number"
+            [class.error]="phone?.invalid && phone?.touched" />
+          <div class="error-message" *ngIf="phone?.invalid && phone?.touched">Phone is required</div>
         </div>
         <div class="form-group">
-          <label for="course_id">Course</label>
-          <select id="course_id" formControlName="course_id" (change)="onCourseChange()">
-            <option [ngValue]="null">-- Select Course (optional) --</option>
+          <label for="course_id">Course <span class="required">*</span></label>
+          <select id="course_id" formControlName="course_id" (change)="onCourseChange()"
+            [class.error]="courseId?.invalid && courseId?.touched">
+            <option [ngValue]="null">-- Select Course --</option>
             <option *ngFor="let course of courses" [ngValue]="course.id">{{ course.course_name }} ({{ course.course_code || course.id }})</option>
           </select>
+          <div class="error-message" *ngIf="courseId?.invalid && courseId?.touched">Course is required</div>
         </div>
         <div class="form-group">
           <label>Batch</label>
@@ -129,12 +136,13 @@
       </div>
       <div class="form-grid payment-fields">
         <div class="form-group">
-          <label for="payment_mode">Payment Type</label>
-          <select id="payment_mode" formControlName="payment_mode">
+          <label for="payment_mode">Payment Type <span class="required">*</span></label>
+          <select id="payment_mode" formControlName="payment_mode" [class.error]="paymentMode?.invalid && paymentMode?.touched">
             <option value="">-- Select --</option>
             <option value="monthly">Monthly</option>
             <option value="one-time">One-time</option>
           </select>
+          <div class="error-message" *ngIf="paymentMode?.invalid && paymentMode?.touched">Payment type is required</div>
         </div>
         <div class="form-group">
           <label for="adjustment_amount">Adjustment Amount</label>

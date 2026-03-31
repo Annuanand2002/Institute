@@ -267,14 +267,21 @@ router.get('/report/:id/monthly-due', async (req, res) => {
     const months = [];
     const monthsCount = monthsBetween(periodStart, now);
     const cursor = new Date(periodStart);
+    // Carry forward unpaid due into next month:
+    // payable_this_month = monthly_amount + carried_due_from_previous_month
+    // next_carried_due = max(0, payable_this_month - paid_this_month)
+    let carriedDue = 0;
     for (let i = 0; i < monthsCount; i++) {
       const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
       const paidAmount = txByMonth.get(key) || 0;
-      const isPaid = paidAmount > 0; // presence of any Fee transaction in that month marks it paid
+      const payableThisMonth = monthlyAmount + carriedDue;
+      const dueAmount = Math.max(0, payableThisMonth - paidAmount);
+      carriedDue = dueAmount;
+      const isPaid = dueAmount === 0;
       months.push({
         month: key,
         paid_amount: Math.round(paidAmount * 100) / 100,
-        due_amount: Math.round((isPaid ? 0 : monthlyAmount) * 100) / 100,
+        due_amount: Math.round(dueAmount * 100) / 100,
         status: isPaid ? 'Paid' : 'Pending'
       });
       cursor.setMonth(cursor.getMonth() + 1);

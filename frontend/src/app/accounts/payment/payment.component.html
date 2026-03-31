@@ -59,12 +59,16 @@
         </div>
 
         <div class="form-group">
-          <label for="transtype">Receipt Type</label>
-          <select id="transtype" formControlName="transtype">
+          <label for="transtype">Receipt Type <span class="required">*</span></label>
+          <select id="transtype" formControlName="transtype"
+            [class.error]="transtype?.invalid && transtype?.touched">
             <option value="Expense">Expense</option>
             <option value="Salary">Salary</option>
             <option value="Refund">Refund</option>
           </select>
+          <div class="error-message" *ngIf="transtype?.invalid && transtype?.touched">
+            Receipt type is required
+          </div>
         </div>
 
         <div class="form-group">
