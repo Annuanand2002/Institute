@@ -55,6 +55,7 @@
   width: 100%;
   max-width: 900px;
   background: #fff;
+  color: #222;
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   overflow: hidden;
@@ -67,6 +68,12 @@
   gap: 12px;
   padding: 16px 18px;
   border-bottom: 1px solid #eee;
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .modal-title h2 {
@@ -142,4 +149,73 @@
 .status-pill.pending { background: #ffebee; color: #c62828; }
 
 .modal-empty { color: #777; font-size: 0.9rem; padding: 10px 0; }
+
+/* Dark theme modal visibility fixes */
+body.theme-dark .modal-backdrop {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+body.theme-dark .modal {
+  background: #1f2937;
+  color: #e5e7eb;
+  border: 1px solid #374151;
+}
+
+body.theme-dark .modal-header {
+  background: #111827;
+  border-bottom-color: #374151;
+}
+
+body.theme-dark .modal-title h2 {
+  color: #ffffff;
+}
+
+body.theme-dark .modal-subtitle,
+body.theme-dark .modal-summary,
+body.theme-dark .modal-empty {
+  color: #e5e7eb;
+}
+
+body.theme-dark .modal-close {
+  background: #374151;
+  color: #f3f4f6;
+}
+
+body.theme-dark .modal-close:hover {
+  background: #4b5563;
+}
+
+body.theme-dark .modal-note {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fde68a;
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+body.theme-dark .modal-table {
+  border-color: #374151;
+}
+
+body.theme-dark .modal-table thead {
+  background: #111827;
+}
+
+body.theme-dark .modal-table th,
+body.theme-dark .modal-table td {
+  color: #e5e7eb;
+  border-bottom-color: #374151;
+}
+
+body.theme-dark .modal-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+body.theme-dark .status-pill.paid {
+  background: rgba(16, 185, 129, 0.2);
+  color: #86efac;
+}
+
+body.theme-dark .status-pill.pending {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
 

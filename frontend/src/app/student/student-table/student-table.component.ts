@@ -225,4 +225,36 @@ export class StudentTableComponent implements OnInit {
       }
     });
   }
+
+  printStudent(student: User): void {
+    this.pdfHeaderFooter.getHeaderFooter().subscribe(({ header, footer }) => {
+      const doc = new jsPDF();
+      const startY = this.pdfHeaderFooter.addHeader(doc, header);
+      doc.text('Student Details', 14, startY);
+
+      const details = [
+        ['Reg No', student.registration_no || '-'],
+        ['Name', student.name || '-'],
+        ['Email', student.email || '-'],
+        ['Phone', student.personal_number || '-'],
+        ['Course', student.course_name || '-'],
+        ['Batch', student.batch_name || '-'],
+        ['Status', student.is_active !== false ? 'Active' : 'Inactive']
+      ];
+
+      autoTable(doc, {
+        head: [['Field', 'Value']],
+        body: details,
+        theme: 'striped',
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [102, 126, 234] },
+        startY: startY + 7
+      });
+
+      this.pdfHeaderFooter.addFooter(doc, footer);
+      const safe = (student.name || 'student').replace(/[^a-z0-9]+/gi, '_');
+      doc.save(`Student_${safe}.pdf`);
+      this.toastService.success('Student print downloaded');
+    });
+  }
 }

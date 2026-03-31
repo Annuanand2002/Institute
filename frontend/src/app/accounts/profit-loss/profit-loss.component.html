@@ -48,6 +48,17 @@
     <!-- Details table -->
     <div class="details-section">
       <h2 class="section-title">Transaction Details (Payments & Receipts)</h2>
+      <div class="table-filters">
+        <select class="table-filter-input" [ngModel]="flowFilter" (ngModelChange)="setFlowFilter($event)">
+          <option value="all">All Types</option>
+          <option value="payment">Payments</option>
+          <option value="receipt">Receipts</option>
+        </select>
+        <select class="table-filter-input" [ngModel]="transTypeFilter" (ngModelChange)="transTypeFilter = $event; onFilterChange()">
+          <option *ngFor="let t of transactionTypeOptions" [value]="t">{{ t === 'all' ? 'All Transaction Types' : t }}</option>
+        </select>
+        <input class="table-filter-input" type="text" placeholder="Search reference / student / type..." [(ngModel)]="searchQuery" (ngModelChange)="onFilterChange()" />
+      </div>
       <div class="table-wrapper">
         <table class="data-table">
           <thead>

@@ -92,11 +92,13 @@ router.get('/report', async (req, res) => {
         u.payment_mode,
         c.course_name,
         c.course_code,
+        b.batch_name,
         c.total_fee,
         c.duration
       FROM user u
       INNER JOIN user_role ur ON u.user_role_id = ur.id
       LEFT JOIN course c ON u.course_id = c.id
+      LEFT JOIN batch b ON c.batch_id = b.id
       WHERE u.is_deleted = FALSE
         AND u.is_active = TRUE
         AND ur.role_name = 'Student'`
@@ -157,6 +159,7 @@ router.get('/report', async (req, res) => {
         registration_no: row.registration_no,
         name: row.name,
         course_name: row.course_name || '-',
+        batch_name: row.batch_name || '-',
         course_code: row.course_code,
         due_amount: Math.round(dueAmount * 100) / 100,
         total_payable: totalPayable,

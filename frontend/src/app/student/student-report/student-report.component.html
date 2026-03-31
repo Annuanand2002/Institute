@@ -40,6 +40,9 @@
           <th (click)="sort('course_name')" class="sortable">Course Name
             <span *ngIf="sortColumn === 'course_name'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
           </th>
+          <th (click)="sort('batch_name')" class="sortable">Batch
+            <span *ngIf="sortColumn === 'batch_name'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+          </th>
           <th (click)="sort('due_amount')" class="sortable">Overall due amount
             <span *ngIf="sortColumn === 'due_amount'" class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
           </th>
@@ -49,7 +52,7 @@
       <tbody>
         <ng-container *ngIf="isLoading">
           <tr *ngFor="let i of [1,2,3,4,5,6,7,8,9,10]" class="table-row skeleton-row">
-            <td colspan="5"><app-skeleton variant="table-row" [height]="'40px'"></app-skeleton></td>
+            <td colspan="6"><app-skeleton variant="table-row" [height]="'40px'"></app-skeleton></td>
           </tr>
         </ng-container>
         <ng-container *ngIf="!isLoading">
@@ -57,8 +60,16 @@
             <td class="reg-cell">{{ student.registration_no || '-' }}</td>
             <td class="name-cell">{{ student.name }}</td>
             <td>{{ student.course_name || '-' }}</td>
+            <td>{{ student.batch_name || '-' }}</td>
             <td>{{ student.due_amount ?? 0 }}</td>
             <td class="actions-cell">
+              <button class="action-btn edit" (click)="printStudentPayments(student)" title="Print payments">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9V4H18V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M6 14H4V10C4 8.9 4.9 8 6 8H18C19.1 8 20 8.9 20 10V14H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <rect x="6" y="14" width="12" height="6" rx="1" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
               <button class="action-btn edit" (click)="openMonthlyDue(student)" title="View monthly due">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
@@ -70,7 +81,7 @@
           </tr>
         </ng-container>
         <tr *ngIf="!isLoading && paginatedStudents.length === 0" class="no-data">
-          <td colspan="5" class="no-data-cell">
+          <td colspan="6" class="no-data-cell">
             <div class="no-data-content">
               <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2"/>
@@ -125,7 +136,10 @@
           {{ dueModalData?.registration_no || dueModalStudent?.registration_no || '' }}
         </p>
       </div>
-      <button class="modal-close" (click)="closeDueModal()" aria-label="Close">×</button>
+      <div class="modal-actions">
+        <button class="btn-download" *ngIf="!isDueModalLoading" (click)="printDueModal()">Print</button>
+        <button class="modal-close" (click)="closeDueModal()" aria-label="Close">×</button>
+      </div>
     </div>
 
     <div class="modal-body" *ngIf="isDueModalLoading">

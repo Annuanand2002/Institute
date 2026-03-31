@@ -51,6 +51,9 @@ export class ProfitLossComponent implements OnInit {
     { key: 'all', label: 'All Time' }
   ];
   activeDateFilter: DateFilterPreset = 'sixmonths';
+  flowFilter: 'all' | 'payment' | 'receipt' = 'all';
+  transTypeFilter = 'all';
+  searchQuery = '';
 
   showAnalyticsPopup = false;
   barChartOptions: ChartConfiguration['options'] = {
@@ -172,16 +175,41 @@ export class ProfitLossComponent implements OnInit {
     this.buildCombinedData();
   }
 
+  setFlowFilter(flow: 'all' | 'payment' | 'receipt'): void {
+    this.flowFilter = flow;
+    this.buildCombinedData();
+  }
+
+  onFilterChange(): void {
+    this.buildCombinedData();
+  }
+
+  get transactionTypeOptions(): string[] {
+    const unique = new Set<string>();
+    [...this.payments, ...this.receipts].forEach(t => {
+      if (t.transtype) unique.add(t.transtype);
+    });
+    return ['all', ...Array.from(unique).sort((a, b) => a.localeCompare(b))];
+  }
+
+  private applyDetailFilters(rows: ProfitLossRow[]): ProfitLossRow[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    return rows.filter(r => {
+      if (this.flowFilter !== 'all' && r.type !== this.flowFilter) return false;
+      if (this.transTypeFilter !== 'all' && r.transtype !== this.transTypeFilter) return false;
+      if (!q) return true;
+      return (
+        (r.reference_number || '').toLowerCase().includes(q) ||
+        (r.studentOrRecipient || '').toLowerCase().includes(q) ||
+        (r.studentOrRecipientId || '').toLowerCase().includes(q) ||
+        (r.transtype || '').toLowerCase().includes(q)
+      );
+    });
+  }
+
   private buildCombinedData(): void {
     const filteredPayments = this.filterByDateRange(this.payments);
     const filteredReceipts = this.filterByDateRange(this.receipts);
-
-    this.paymentsInCount = filteredPayments.length;
-    this.expensesOutCount = filteredReceipts.length;
-    this.totalAmount = filteredPayments.reduce((s, t) => s + this.txnAmount(t.amount), 0);
-    this.totalExpenses = filteredReceipts.reduce((s, t) => s + this.txnAmount(t.amount), 0);
-    this.totalSalary = this.totalExpenses; // alias for exports/charts that used "salary"
-    this.profitLoss = this.totalAmount - this.totalExpenses;
 
     const paymentRows: ProfitLossRow[] = filteredPayments.map(t => ({
       transaction_date: t.transaction_date || '',
@@ -208,6 +236,17 @@ export class ProfitLossComponent implements OnInit {
       const db = new Date(b.transaction_date).getTime();
       return db - da; // newest first
     });
+
+    this.combinedRows = this.applyDetailFilters(this.combinedRows);
+
+    const finalPayments = this.combinedRows.filter(r => r.type === 'payment');
+    const finalReceipts = this.combinedRows.filter(r => r.type === 'receipt');
+    this.paymentsInCount = finalPayments.length;
+    this.expensesOutCount = finalReceipts.length;
+    this.totalAmount = finalPayments.reduce((s, r) => s + r.amount, 0);
+    this.totalExpenses = finalReceipts.reduce((s, r) => s + r.amount, 0);
+    this.totalSalary = this.totalExpenses; // alias for exports/charts that used "salary"
+    this.profitLoss = this.totalAmount - this.totalExpenses;
   }
 
   formatCurrency(v: number): string {

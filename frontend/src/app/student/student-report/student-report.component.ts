@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { UserService, User, StudentMonthlyDueResponse } from '../../services/user.service';
+import { TransactionService } from '../../services/transaction.service';
 import { ToastService } from '../../services/toast.service';
 import { LoadingService } from '../../services/loading.service';
 import { PdfHeaderFooterService } from '../../services/pdf-header-footer.service';
@@ -47,6 +48,7 @@ export class StudentReportComponent implements OnInit {
 
   constructor(
     private userService: UserService,
+    private transactionService: TransactionService,
     private toastService: ToastService,
     private loadingService: LoadingService,
     private pdfHeaderFooter: PdfHeaderFooterService
@@ -86,7 +88,8 @@ export class StudentReportComponent implements OnInit {
     this.filteredStudents = this.allStudents.filter(s =>
       (s.name || '').toLowerCase().includes(query) ||
       (s.registration_no || '').toLowerCase().includes(query) ||
-      (s.course_name || '').toLowerCase().includes(query)
+      (s.course_name || '').toLowerCase().includes(query) ||
+      (s.batch_name || '').toLowerCase().includes(query)
     );
     this.currentPage = 1;
   }
@@ -159,11 +162,12 @@ export class StudentReportComponent implements OnInit {
   }
 
   downloadCSV(): void {
-    const headers = ['Student ID (Reg No)', 'Student Name', 'Course Name', 'Overall due amount'];
+    const headers = ['Student ID (Reg No)', 'Student Name', 'Course Name', 'Batch', 'Overall due amount'];
     const rows = this.filteredStudents.map(s => [
       (s.registration_no || (s as any).student_id) ?? '',
       s.name || '',
       s.course_name || '-',
+      s.batch_name || '-',
       (s.due_amount ?? 0)
     ]);
     const csvContent = [headers.join(','), ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))].join('\n');
@@ -180,11 +184,12 @@ export class StudentReportComponent implements OnInit {
     this.pdfHeaderFooter.getHeaderFooter().subscribe(({ header, footer }) => {
       const doc = new jsPDF();
       const startY = this.pdfHeaderFooter.addHeader(doc, header);
-      const headers = [['Student ID', 'Student Name', 'Course Name', 'Overall due amount']];
+      const headers = [['Student ID', 'Student Name', 'Course Name', 'Batch', 'Overall due amount']];
       const rows = this.filteredStudents.map(s => [
         (s.registration_no || '').substring(0, 15),
         (s.name || '').substring(0, 25),
         (s.course_name || '-').substring(0, 20),
+        (s.batch_name || '-').substring(0, 18),
         String(s.due_amount ?? 0)
       ]);
       doc.text('Student Report – Overall due amount', 14, startY);
@@ -203,11 +208,12 @@ export class StudentReportComponent implements OnInit {
   }
 
   downloadExcel(): void {
-    const headers = ['Student ID (Reg No)', 'Student Name', 'Course Name', 'Overall due amount'];
+    const headers = ['Student ID (Reg No)', 'Student Name', 'Course Name', 'Batch', 'Overall due amount'];
     const rows = this.filteredStudents.map(s => [
       (s.registration_no || (s as any).student_id) ?? '',
       s.name || '',
       s.course_name || '-',
+      s.batch_name || '-',
       (s.due_amount ?? 0)
     ]);
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
@@ -248,6 +254,88 @@ export class StudentReportComponent implements OnInit {
     this.isDueModalLoading = false;
     this.dueModalStudent = null;
     this.dueModalData = null;
+  }
+
+  printDueModal(): void {
+    const studentName = this.dueModalData?.name || this.dueModalStudent?.name || '-';
+    const regNo = this.dueModalData?.registration_no || this.dueModalStudent?.registration_no || '-';
+    const monthlyAmount = this.dueModalData?.monthly_amount ?? 0;
+    const months = this.dueModalData?.months || [];
+
+    this.pdfHeaderFooter.getHeaderFooter().subscribe(({ header, footer }) => {
+      const doc = new jsPDF();
+      const startY = this.pdfHeaderFooter.addHeader(doc, header);
+      doc.text('Student Monthly Due Details', 14, startY);
+      doc.setFontSize(10);
+      doc.text(`${studentName} (${regNo})`, 14, startY + 6);
+      doc.text(`Monthly installment: ${monthlyAmount}`, 14, startY + 12);
+
+      const rows = months.map(m => [m.month, m.status, String(m.paid_amount), String(m.due_amount)]);
+      autoTable(doc, {
+        head: [['Month', 'Status', 'Paid', 'Due']],
+        body: rows.length ? rows : [['-', '-', '0', '0']],
+        theme: 'striped',
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [102, 126, 234] },
+        startY: startY + 17
+      });
+
+      this.pdfHeaderFooter.addFooter(doc, footer);
+      const safe = (studentName || 'student').replace(/[^a-z0-9]+/gi, '_');
+      doc.save(`Student_Monthly_Due_${safe}.pdf`);
+      this.toastService.success('Monthly due print downloaded');
+    });
+  }
+
+  printStudentPayments(student: User): void {
+    const id = Number(student.id ?? (student as any).student_id);
+    if (!id || Number.isNaN(id)) return;
+
+    this.loadingService.show();
+    this.transactionService.getTransactions({
+      user_id: id,
+      transtypes: 'Fee,Admission,Opening Balance,Other'
+    }).subscribe({
+      next: (response) => {
+        this.loadingService.hide();
+        const txns = response.success ? (response.data || []) : [];
+        this.pdfHeaderFooter.getHeaderFooter().subscribe(({ header, footer }) => {
+          const doc = new jsPDF();
+          const startY = this.pdfHeaderFooter.addHeader(doc, header);
+          doc.text(`Student Payment Details`, 14, startY);
+          doc.setFontSize(10);
+          doc.text(`${student.name || '-'} (${student.registration_no || '-'})`, 14, startY + 6);
+
+          const headers = [['Date', 'Reference', 'Mode', 'Type', 'Amount', 'Remarks']];
+          const rows = txns.map(t => [
+            t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-IN') : '-',
+            (t.reference_number || '-').substring(0, 12),
+            (t.payment_mode || '-').substring(0, 10),
+            (t.transtype || '-').substring(0, 15),
+            String(t.amount ?? 0),
+            (t.remarks || '-').substring(0, 22)
+          ]);
+
+          autoTable(doc, {
+            head: headers,
+            body: rows.length ? rows : [['-', '-', '-', '-', '0', 'No payments found']],
+            theme: 'striped',
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [102, 126, 234] },
+            startY: startY + 10
+          });
+
+          this.pdfHeaderFooter.addFooter(doc, footer);
+          const safe = (student.name || 'student').replace(/[^a-z0-9]+/gi, '_');
+          doc.save(`Student_Payments_${safe}.pdf`);
+          this.toastService.success('Student payment print downloaded');
+        });
+      },
+      error: (err) => {
+        this.loadingService.hide();
+        this.toastService.error(err?.error?.error || 'Failed to load student payments');
+      }
+    });
   }
 }
 

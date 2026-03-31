@@ -27,7 +27,7 @@
       </div>
     </div>
 
-    <nav class="nav-menu" #navMenu>
+    <nav class="nav-menu" #navMenu (scroll)="onNavMenuScroll()">
       <div *ngFor="let module of filteredModules" class="nav-module">
         <div class="module-header" *ngIf="!collapsed">
           <h3 class="module-title">{{ module.name }}</h3>

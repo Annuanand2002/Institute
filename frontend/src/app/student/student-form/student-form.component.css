@@ -39,6 +39,25 @@
 .form-group .error-message { display: block; margin: 0; font-size: 0.85rem; color: #f44336; }
 .form-group select { cursor: pointer; background: white; }
 
+.readonly-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #e0e7ff;
+  min-height: 38px;
+}
+
+.readonly-chip--muted {
+  background: #f3f4f6;
+  color: #6b7280;
+  border-color: #e5e7eb;
+}
+
 .form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 16px; padding-top: 20px; border-top: 2px solid #e0e0e0; margin-top: 10px; }
 .btn-secondary, .btn-primary { padding: 12px 32px; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; border: none; }
 .btn-secondary { background: #f5f5f5; color: #666; border: 1px solid #e0e0e0; }

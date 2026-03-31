@@ -18,6 +18,7 @@ const STUDENT_ROLE_ID = 2; // Student role in user_role table
 export class StudentFormComponent implements OnInit, OnDestroy {
   studentForm!: FormGroup;
   courses: Course[] = [];
+  selectedBatchName: string | null = null;
   existingStudent: User | null = null;
   isSubmitting = false;
   isEditMode = false;
@@ -80,7 +81,10 @@ export class StudentFormComponent implements OnInit, OnDestroy {
   private loadCourses(): void {
     this.courseService.getCourses({ is_active: true }).subscribe({
       next: (response) => {
-        if (response.success) this.courses = response.data || [];
+        if (response.success) {
+          this.courses = response.data || [];
+          this.updateSelectedBatchFromForm();
+        }
       },
       error: () => {}
     });
@@ -114,6 +118,7 @@ export class StudentFormComponent implements OnInit, OnDestroy {
             payment_mode: (u as any).payment_mode || '',
             adjustment_amount: (u as any).adjustment_amount ?? ''
           });
+          this.updateSelectedBatchFromForm();
         }
         this.loadingService.hide();
       },
@@ -122,6 +127,20 @@ export class StudentFormComponent implements OnInit, OnDestroy {
         this.loadingService.hide();
       }
     });
+  }
+
+  onCourseChange(): void {
+    this.updateSelectedBatchFromForm();
+  }
+
+  private updateSelectedBatchFromForm(): void {
+    const courseId = this.studentForm?.get('course_id')?.value;
+    if (!courseId) {
+      this.selectedBatchName = null;
+      return;
+    }
+    const course = this.courses.find(c => c.id === courseId);
+    this.selectedBatchName = course?.batch_name || null;
   }
 
   onSubmit(): void {

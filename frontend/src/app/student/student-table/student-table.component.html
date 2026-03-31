@@ -47,6 +47,7 @@
           </th>
           <th>Phone</th>
           <th>Course</th>
+          <th>Batch</th>
           <th>Status</th>
           <th>Active</th>
           <th>Actions</th>
@@ -63,8 +64,9 @@
           <td class="reg-cell">{{ student.registration_no || '-' }}</td>
           <td class="name-cell">{{ student.name }}</td>
           <td>{{ student.email || '-' }}</td>
-          <td>{{ student.personal_number || '-' }}</td>
-          <td>{{ student.course_name || '-' }}</td>
+            <td>{{ student.personal_number || '-' }}</td>
+            <td>{{ student.course_name || '-' }}</td>
+            <td>{{ student.batch_name || '-' }}</td>
           <td>
             <span class="status-badge" [class.active]="student.is_active !== false" [class.inactive]="student.is_active === false">
               {{ student.is_active !== false ? 'Active' : 'Inactive' }}
@@ -82,6 +84,13 @@
             </label>
           </td>
           <td class="actions-cell">
+            <button class="action-btn edit" (click)="printStudent(student)" title="Print">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9V4H18V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6 14H4V10C4 8.9 4.9 8 6 8H18C19.1 8 20 8.9 20 10V14H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="6" y="14" width="12" height="6" rx="1" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
             <button class="action-btn edit" (click)="editStudent(student)" title="Edit">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2"/>
@@ -97,7 +106,7 @@
         </tr>
         </ng-container>
         <tr *ngIf="!isLoading && paginatedStudents.length === 0" class="no-data">
-          <td colspan="8" class="no-data-cell">
+          <td colspan="9" class="no-data-cell">
             <div class="no-data-content">
               <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2"/>

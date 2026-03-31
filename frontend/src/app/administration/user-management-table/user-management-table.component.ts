@@ -214,4 +214,35 @@ export class UserManagementTableComponent implements OnInit {
       }
     });
   }
+
+  printUser(user: UserProfile): void {
+    this.pdfHeaderFooter.getHeaderFooter().subscribe(({ header, footer }) => {
+      const doc = new jsPDF();
+      const startY = this.pdfHeaderFooter.addHeader(doc, header);
+      doc.text('User Profile Details', 14, startY);
+
+      const details = [
+        ['User ID', user.userId || '-'],
+        ['Username', user.username || '-'],
+        ['Staff Name', user.staff_name || user.tutorName || '-'],
+        ['Staff Reg No', user.staff_reg_no || user.tutorRegNo || '-'],
+        ['Can Login', user.can_login ? 'Yes' : 'No'],
+        ['Active', user.is_active ? 'Yes' : 'No']
+      ];
+
+      autoTable(doc, {
+        head: [['Field', 'Value']],
+        body: details,
+        theme: 'striped',
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [102, 126, 234] },
+        startY: startY + 7
+      });
+
+      this.pdfHeaderFooter.addFooter(doc, footer);
+      const safe = (user.username || 'user').replace(/[^a-z0-9]+/gi, '_');
+      doc.save(`User_${safe}.pdf`);
+      this.toastService.success('User print downloaded');
+    });
+  }
 }

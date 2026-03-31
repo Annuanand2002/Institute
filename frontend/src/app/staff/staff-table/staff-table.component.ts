@@ -216,4 +216,35 @@ export class StaffTableComponent implements OnInit {
       });
     }
   }
+
+  printStaff(staff: User): void {
+    this.pdfHeaderFooter.getHeaderFooter().subscribe(({ header, footer }) => {
+      const doc = new jsPDF();
+      const startY = this.pdfHeaderFooter.addHeader(doc, header);
+      doc.text('Staff Details', 14, startY);
+
+      const details = [
+        ['Staff ID', staff.registration_no || '-'],
+        ['Name', staff.name || '-'],
+        ['Email', staff.email || '-'],
+        ['Phone', staff.personal_number || '-'],
+        ['Qualification', staff.educational_qualification || '-'],
+        ['Status', staff.is_active !== false ? 'Active' : 'Inactive']
+      ];
+
+      autoTable(doc, {
+        head: [['Field', 'Value']],
+        body: details,
+        theme: 'striped',
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [102, 126, 234] },
+        startY: startY + 7
+      });
+
+      this.pdfHeaderFooter.addFooter(doc, footer);
+      const safe = (staff.name || 'staff').replace(/[^a-z0-9]+/gi, '_');
+      doc.save(`Staff_${safe}.pdf`);
+      this.toastService.success('Staff print downloaded');
+    });
+  }
 }

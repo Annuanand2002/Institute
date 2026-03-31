@@ -1,5 +1,8 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
+import { NavigationEnd } from '@angular/router';
+import { Subject } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 import { User } from '../../services/auth.service';
 
 interface NavItem {
@@ -24,7 +27,7 @@ interface NavModule {
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
-export class SidebarComponent implements OnInit, OnChanges {
+export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @Input() collapsed = false;
   @Input() orgName: string | null = null;
   @Input() orgLogo: string | null = null;
@@ -34,6 +37,8 @@ export class SidebarComponent implements OnInit, OnChanges {
   @Output() logout = new EventEmitter<void>();
 
   @ViewChild('navMenu') navMenu?: ElementRef<HTMLDivElement>;
+  private readonly sidebarScrollKey = 'ims.sidebar.scrollTop';
+  private destroy$ = new Subject<void>();
 
   searchQuery = '';
 
@@ -89,6 +94,18 @@ export class SidebarComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.applyFilters();
+
+    // Restore sidebar scroll after every successful route change.
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => this.restoreSidebarScroll());
+  }
+
+  ngAfterViewInit(): void {
+    this.restoreSidebarScroll();
   }
 
   /** Modules visible for current user: Admin = all; others = by permission flags. */
@@ -144,13 +161,34 @@ export class SidebarComponent implements OnInit, OnChanges {
   }
 
   navigateTo(route: string): void {
-    const currentScroll = this.navMenu?.nativeElement.scrollTop ?? 0;
+    this.saveSidebarScroll();
     this.router.navigate([route]).then(() => {
-      // Restore sidebar scroll so it doesn't jump back to top after routing
-      if (this.navMenu) {
-        this.navMenu.nativeElement.scrollTop = currentScroll;
-      }
+      this.restoreSidebarScroll();
     });
+  }
+
+  onNavMenuScroll(): void {
+    this.saveSidebarScroll();
+  }
+
+  private saveSidebarScroll(): void {
+    const top = this.navMenu?.nativeElement.scrollTop ?? 0;
+    sessionStorage.setItem(this.sidebarScrollKey, String(top));
+  }
+
+  private restoreSidebarScroll(): void {
+    const top = Number(sessionStorage.getItem(this.sidebarScrollKey) || '0');
+    // Defer until DOM updates settle after navigation/filtering.
+    setTimeout(() => {
+      if (this.navMenu?.nativeElement) {
+        this.navMenu.nativeElement.scrollTop = Number.isFinite(top) ? top : 0;
+      }
+    }, 0);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   isActive(route: string): boolean {

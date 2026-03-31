@@ -56,10 +56,19 @@
         </div>
         <div class="form-group">
           <label for="course_id">Course</label>
-          <select id="course_id" formControlName="course_id">
+          <select id="course_id" formControlName="course_id" (change)="onCourseChange()">
             <option [ngValue]="null">-- Select Course (optional) --</option>
             <option *ngFor="let course of courses" [ngValue]="course.id">{{ course.course_name }} ({{ course.course_code || course.id }})</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label>Batch</label>
+          <div class="readonly-chip" *ngIf="selectedBatchName; else noBatch">
+            {{ selectedBatchName }}
+          </div>
+          <ng-template #noBatch>
+            <div class="readonly-chip readonly-chip--muted">No batch (select a course)</div>
+          </ng-template>
         </div>
         <div class="form-group">
           <label for="date_of_birth">Date of Birth</label>
