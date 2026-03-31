@@ -24,8 +24,8 @@
 .data-table tbody .table-row:hover { background: #f9f9f9; }
 .data-table td { padding: 16px; font-size: 0.9rem; }
 .amount-cell { font-weight: 600; color: #4caf50; }
-.badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
-.badge.badge-in { background: #e8f5e9; color: #4caf50; }
+.badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; background: #f5f5f5; color: #555; }
+.badge.badge-in { background: #f5f5f5; color: #555; }
 .empty-cell { color: #999; font-style: italic; }
 .actions-cell .action-btn { width: 32px; height: 32px; border: none; border-radius: 6px; cursor: pointer; margin-right: 8px; }
 .actions-cell .action-btn.edit { background: #e3f2fd; color: #2196f3; }
