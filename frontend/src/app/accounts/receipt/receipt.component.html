@@ -1,12 +1,12 @@
 <div class="form-container" *ngIf="!isCreateMode && !isEditMode">
-  <app-receipt-table></app-receipt-table>
+  <app-payment-table></app-payment-table>
 </div>
 
 <div class="form-container" *ngIf="isCreateMode || isEditMode">
   <div class="page-header">
     <div>
-      <h1>{{ isEditMode ? 'Edit Payment' : 'Create New Payment' }}</h1>
-      <p>{{ isEditMode ? 'Update payment details' : 'Fill in the details to record a new payment' }}</p>
+      <h1>{{ isEditMode ? 'Edit Receipt' : 'Create New Receipt' }}</h1>
+      <p>{{ isEditMode ? 'Update receipt details' : 'Fill in the details to record a new receipt (expense/disbursement)' }}</p>
     </div>
     <button class="cancel-btn" (click)="onCancel()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -19,7 +19,7 @@
   <form [formGroup]="receiptForm" (ngSubmit)="onSubmit()" class="receipt-form">
     <div class="form-section">
       <div class="section-header">
-        <h2>Payment Details</h2>
+        <h2>Receipt Details</h2>
         <span class="section-number">1</span>
       </div>
 
@@ -59,16 +59,15 @@
         </div>
 
         <div class="form-group">
-          <label for="transtype">Transaction Type <span class="required">*</span></label>
+          <label for="transtype">Receipt Type <span class="required">*</span></label>
           <select id="transtype" formControlName="transtype"
             [class.error]="transtype?.invalid && transtype?.touched">
-            <option value="Fee">Fee</option>
-            <option value="Admission">Admission</option>
-            <option value="Opening Balance">Opening Balance</option>
-            <option value="Other">Other</option>
+            <option value="Expense">Expense</option>
+            <option value="Salary">Salary</option>
+            <option value="Refund">Refund</option>
           </select>
           <div class="error-message" *ngIf="transtype?.invalid && transtype?.touched">
-            Transaction type is required
+            Receipt type is required
           </div>
         </div>
 
@@ -108,7 +107,7 @@
               </div>
             </div>
           </div>
-          <div class="error-message" *ngIf="userId?.invalid && userId?.touched">Please select a student or staff</div>
+          <div class="error-message" *ngIf="userId?.invalid && userId?.touched">Please select a recipient</div>
         </div>
 
         <div class="form-group full-width">
@@ -121,7 +120,7 @@
     <div class="form-actions">
       <button type="button" class="btn-secondary" (click)="onCancel()" [disabled]="isSubmitting">Cancel</button>
       <button type="submit" class="btn-primary" [disabled]="isSubmitting || receiptForm.invalid">
-        <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update' : 'Create' }} Payment</span>
+        <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update' : 'Create' }} Receipt</span>
         <span *ngIf="isSubmitting" class="loading">
           <span class="spinner"></span>
           {{ isEditMode ? 'Updating...' : 'Creating...' }}

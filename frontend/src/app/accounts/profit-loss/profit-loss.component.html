@@ -78,7 +78,7 @@
               <td>{{ row.reference_number || '-' }}</td>
               <td>
                 <span class="type-badge" [class.badge-payment]="row.type === 'payment'" [class.badge-receipt]="row.type === 'receipt'">
-                  {{ row.type === 'payment' ? 'Payment' : 'Receipt' }}
+                  {{ row.type === 'payment' ? 'IN' : 'OUT' }}
                 </span>
               </td>
               <td>{{ row.transtype || '-' }}</td>

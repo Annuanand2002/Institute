@@ -82,7 +82,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
       reference_number: [{ value: '', disabled: true }, []],
       payment_mode: ['Cash', [Validators.required]],
       amount: ['', [Validators.required, Validators.min(0.01)]],
-      transtype: ['Expense', [Validators.required]],
+      transtype: ['Fee', [Validators.required]],
       remarks: [''],
       user_id: [null, Validators.required]
     });
@@ -181,14 +181,14 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
 
   private generateReferenceNumber(): void {
-    this.transactionService.getTransactions({ transtypes: 'Expense,Salary,Refund' }).subscribe({
+    this.transactionService.getTransactions({ transtypes: 'Fee,Admission,Opening Balance,Other' }).subscribe({
       next: (response) => {
         const count = (response.success && response.data ? response.data.length : 0) + 1;
-        const ref = 'R' + String(count).padStart(5, '0'); // R00001, R00002, ...
+        const ref = 'P' + String(count).padStart(5, '0'); // P00001, P00002, ...
         this.paymentForm.patchValue({ reference_number: ref });
       },
       error: () => {
-        this.paymentForm.patchValue({ reference_number: 'R00001' });
+        this.paymentForm.patchValue({ reference_number: 'P00001' });
       }
     });
   }
@@ -203,7 +203,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
             reference_number: p.reference_number || '',
             payment_mode: p.payment_mode || 'Cash',
             amount: p.amount,
-            transtype: p.transtype || 'Expense',
+            transtype: p.transtype || 'Fee',
             remarks: p.remarks || '',
             user_id: p.user_id
           });
@@ -211,7 +211,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
           if (r) this.selectedRecipientName = this.formatRecipientLabel(r);
         }
       },
-      error: () => this.toastService.error('Failed to load receipt')
+      error: () => this.toastService.error('Failed to load payment')
     });
   }
 
@@ -234,7 +234,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
       transaction_date: formValue.transaction_date || new Date().toISOString().split('T')[0],
       payment_mode: formValue.payment_mode || 'Cash',
       amount: parseFloat(formValue.amount),
-      transtype: formValue.transtype || 'Expense',
+      transtype: formValue.transtype || 'Fee',
       reference_number: formValue.reference_number || `REF${Date.now()}`,
       remarks: formValue.remarks || undefined
     };
@@ -244,13 +244,13 @@ export class PaymentComponent implements OnInit, OnDestroy {
         next: (response) => {
           this.isSubmitting = false;
           if (response.success) {
-            this.toastService.success('Receipt updated successfully!');
-            this.router.navigate(['/dashboard/accounts/receipt']);
+            this.toastService.success('Payment updated successfully!');
+            this.router.navigate(['/dashboard/accounts/payment']);
           }
         },
         error: (err) => {
           this.isSubmitting = false;
-          this.toastService.error(err?.error?.error || 'Failed to update receipt');
+          this.toastService.error(err?.error?.error || 'Failed to update payment');
         }
       });
     } else {
@@ -258,20 +258,20 @@ export class PaymentComponent implements OnInit, OnDestroy {
         next: (response) => {
           this.isSubmitting = false;
           if (response.success) {
-            this.toastService.success('Receipt recorded successfully!');
-            this.router.navigate(['/dashboard/accounts/receipt']);
+            this.toastService.success('Payment recorded successfully!');
+            this.router.navigate(['/dashboard/accounts/payment']);
           }
         },
         error: (err) => {
           this.isSubmitting = false;
-          this.toastService.error(err?.error?.error || 'Failed to create receipt');
+          this.toastService.error(err?.error?.error || 'Failed to create payment');
         }
       });
     }
   }
 
   onCancel(): void {
-    this.router.navigate(['/dashboard/accounts/receipt']);
+    this.router.navigate(['/dashboard/accounts/payment']);
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {

@@ -300,7 +300,7 @@ export class ProfitLossComponent implements OnInit {
       const tableRows = this.combinedRows.map(r => [
         this.formatDate(r.transaction_date),
         (r.reference_number || '-').substring(0, 12),
-        r.type === 'payment' ? 'Payment' : 'Receipt',
+        r.type === 'payment' ? 'IN' : 'OUT',
         (r.transtype || '-').substring(0, 12),
         (r.studentOrRecipientId || '-').substring(0, 15),
         (r.studentOrRecipient || '-').substring(0, 25),
@@ -334,7 +334,7 @@ export class ProfitLossComponent implements OnInit {
     const rows = this.combinedRows.map(r => [
       this.formatDate(r.transaction_date),
       r.reference_number || '-',
-      r.type === 'payment' ? 'Payment' : 'Receipt',
+      r.type === 'payment' ? 'IN' : 'OUT',
       r.transtype || '-',
       r.studentOrRecipientId || '-',
       r.studentOrRecipient || '-',
