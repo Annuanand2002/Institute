@@ -2,7 +2,13 @@
   <div class="table-header">
     <div>
       <h1>Student Report</h1>
-      <p>Total: {{ filteredStudents.length }} students &nbsp;·&nbsp; Overall due amount per student</p>
+      <p>
+        Total: {{ filteredStudents.length }} students &nbsp;·&nbsp; Overall due amount per student
+        <ng-container *ngIf="reportPaymentMonthFrom && reportPaymentMonthTo">
+          <br />
+          <span class="filter-active-hint">Students with at least one payment (Fee, Admission, Opening Balance, or Other) in any month from {{ formatMonthLabel(reportPaymentMonthFrom) }} through {{ formatMonthLabel(reportPaymentMonthTo) }} — including activity only in months inside that span (e.g. February–March when the range is January–April).</span>
+        </ng-container>
+      </p>
     </div>
     <div class="header-actions">
       <button class="btn-download" (click)="openAnalytics()" title="View analytics">Analytics</button>
@@ -25,6 +31,15 @@
         </svg>
       </button>
     </div>
+  </div>
+
+  <div class="payment-filter-row">
+    <span class="payment-filter-label">Payments in months</span>
+    <input type="month" class="date-filter-input" [(ngModel)]="paymentFilterMonthFrom" title="From month" />
+    <span class="payment-filter-to">to</span>
+    <input type="month" class="date-filter-input" [(ngModel)]="paymentFilterMonthTo" title="To month" />
+    <button type="button" class="btn-filter-apply" (click)="applyPaymentMonthFilter()">Apply</button>
+    <button type="button" class="btn-filter-clear" *ngIf="reportPaymentMonthFrom" (click)="clearPaymentMonthFilter()">Clear filter</button>
   </div>
 
   <div class="table-wrapper">

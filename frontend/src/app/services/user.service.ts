@@ -109,8 +109,12 @@ export class UserService {
     });
   }
 
-  getStudentReport(): Observable<{ success: boolean; data: User[] }> {
-    return this.api.get<{ success: boolean; data: User[] }>('/users/report');
+  getStudentReport(params?: { month_from?: string; month_to?: string }): Observable<{ success: boolean; data: User[] }> {
+    const q: { month_from?: string; month_to?: string } = {};
+    if (params?.month_from) q.month_from = params.month_from;
+    if (params?.month_to) q.month_to = params.month_to;
+    const query = q.month_from && q.month_to ? q : undefined;
+    return this.api.get<{ success: boolean; data: User[] }>('/users/report', query);
   }
 
   getStudentMonthlyDue(studentId: number): Observable<{ success: boolean; data: StudentMonthlyDueResponse }> {

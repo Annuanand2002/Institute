@@ -23,7 +23,12 @@ export class StudentReportComponent implements OnInit {
   sortColumn: string | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
   isLoading = false;
-  /** Current month label for report (e.g. "2025-03") */
+  /** Payment month range (YYYY-MM); both required to filter by Fee in those calendar months. */
+  paymentFilterMonthFrom = '';
+  paymentFilterMonthTo = '';
+  /** Months used for the last successful load (for subtitle), YYYY-MM. */
+  reportPaymentMonthFrom: string | null = null;
+  reportPaymentMonthTo: string | null = null;
 
   isDueModalOpen = false;
   isDueModalLoading = false;
@@ -61,11 +66,25 @@ export class StudentReportComponent implements OnInit {
   loadData(): void {
     this.isLoading = true;
     this.loadingService.show();
-    this.userService.getStudentReport().subscribe({
+    const monthFrom = this.paymentFilterMonthFrom?.trim();
+    const monthTo = this.paymentFilterMonthTo?.trim();
+    const params =
+      monthFrom && monthTo ? { month_from: monthFrom, month_to: monthTo } : undefined;
+    this.userService.getStudentReport(params).subscribe({
       next: (response) => {
         if (response.success) {
           this.allStudents = Array.isArray(response.data) ? response.data : [];
           this.filteredStudents = [...this.allStudents];
+          if (params) {
+            this.reportPaymentMonthFrom = params.month_from;
+            this.reportPaymentMonthTo = params.month_to;
+          } else {
+            this.reportPaymentMonthFrom = null;
+            this.reportPaymentMonthTo = null;
+          }
+          if (this.searchQuery.trim()) {
+            this.onSearch();
+          }
         }
         this.isLoading = false;
         this.loadingService.hide();
@@ -76,6 +95,33 @@ export class StudentReportComponent implements OnInit {
         this.loadingService.hide();
       }
     });
+  }
+
+  applyPaymentMonthFilter(): void {
+    const from = this.paymentFilterMonthFrom?.trim();
+    const to = this.paymentFilterMonthTo?.trim();
+    if (!from || !to) {
+      this.toastService.error('Select both from and to months to filter by payments');
+      return;
+    }
+    if (from > to) {
+      this.toastService.error('From month must be on or before to month');
+      return;
+    }
+    this.loadData();
+  }
+
+  clearPaymentMonthFilter(): void {
+    this.paymentFilterMonthFrom = '';
+    this.paymentFilterMonthTo = '';
+    this.loadData();
+  }
+
+  /** Display YYYY-MM as e.g. "January 2026". */
+  formatMonthLabel(ym: string): string {
+    const [y, m] = ym.split('-').map(Number);
+    if (!y || !m || m < 1 || m > 12) return ym;
+    return new Date(y, m - 1, 1).toLocaleString('en-IN', { month: 'long', year: 'numeric' });
   }
 
   onSearch(): void {

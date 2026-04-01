@@ -75,9 +75,38 @@ function monthsBetween(startDate, endDate) {
   return Math.max(0, (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1);
 }
 
+/** YYYY-MM for payment month filter. */
+function parseReportMonthParam(v) {
+  const s = String(v || '').trim();
+  if (!/^\d{4}-\d{2}$/.test(s)) return null;
+  const [y, m] = s.split('-').map(Number);
+  if (!y || m < 1 || m > 12) return null;
+  return s;
+}
+
+/** First day of month (YYYY-MM-01) and exclusive end (first day after last month) for SQL range checks. */
+function monthRangeToSqlBounds(monthFromYm, monthToYm) {
+  const start = `${monthFromYm}-01`;
+  const [y, m] = monthToYm.split('-').map(Number);
+  let ny = y;
+  let nm = m + 1;
+  if (nm > 12) {
+    nm = 1;
+    ny += 1;
+  }
+  const endExclusive = `${ny}-${String(nm).padStart(2, '0')}-01`;
+  return { start, endExclusive };
+}
+
+/** Receipt-side types that count as a student payment for report month filter (matches student payment print). */
+const REPORT_PAYMENT_MONTH_FILTER_TYPES = ['Fee', 'Admission', 'Opening Balance', 'Other'];
+
 // Student report: due amount from application_date to current month only.
 // Start = application_date month; end = current month. Expected = (months in range) × monthly installment.
 // Paid in period = sum of Fee transactions only (transtype = 'Fee') in that date range. Due = expected − paid (min 0).
+// Optional query: month_from & month_to (YYYY-MM) — students with ≥1 qualifying payment
+// (Fee / Admission / Opening Balance / Other) with transaction_date in any calendar month
+// from month_from through month_to inclusive (e.g. Jan–Apr includes payers active only in Feb–Mar).
 router.get('/report', async (req, res) => {
   try {
     const [rows] = await db.execute(
@@ -113,7 +142,7 @@ router.get('/report', async (req, res) => {
     const now = new Date();
     const periodEnd = endOfMonth(now);
 
-    const data = (rows || []).map(row => {
+    const reportRows = (rows || []).map(row => {
       const courseFee =
         row.course_fee != null
           ? Number(row.course_fee)
@@ -169,6 +198,27 @@ router.get('/report', async (req, res) => {
         expected_in_period: Math.round(expectedInPeriod * 100) / 100
       };
     });
+
+    const { month_from, month_to } = req.query;
+    let data = reportRows;
+    const mf = parseReportMonthParam(month_from);
+    const mt = parseReportMonthParam(month_to);
+    if (mf && mt && mf <= mt) {
+      const { start, endExclusive } = monthRangeToSqlBounds(mf, mt);
+      const typePlaceholders = REPORT_PAYMENT_MONTH_FILTER_TYPES.map(() => '?').join(', ');
+      const [payUserRows] = await db.execute(
+        `SELECT DISTINCT user_id FROM transactions
+         WHERE is_deleted = FALSE AND transtype IN (${typePlaceholders})
+           AND transaction_date >= ? AND transaction_date < ?`,
+        [...REPORT_PAYMENT_MONTH_FILTER_TYPES, start, endExclusive]
+      );
+      const userIdsWithPaymentInRange = new Set(
+        (payUserRows || []).map((r) => Number(r.user_id))
+      );
+      data = reportRows.filter((row) =>
+        userIdsWithPaymentInRange.has(Number(row.student_id))
+      );
+    }
 
     res.json({ success: true, data });
   } catch (error) {
